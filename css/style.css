@@ -13,20 +13,18 @@ html, body {
 .page-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* full viewport height */
+  height: 100%; /* not 100vh */
 }
 
 .backgroundimage {
-  flex: 7; /* 70% */
-  background: url('../img/yourimage.jpg') no-repeat center center;
-  background-size: cover;
+  flex: 7; /* 70% of the wrapper */
 }
 
 .content {
-  flex: 3; /* 30% */
+  flex: 3; /* 30% of the wrapper */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centers text/socials vertically */
+  justify-content: center;
   align-items: center;
   text-align: center;
   padding: 1rem;
