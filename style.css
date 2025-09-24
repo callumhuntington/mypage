@@ -1,0 +1,533 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: 0px;
+    font-family: sans-serif;
+}
+
+/* Only for landing page */
+body.landing, html.landing {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* disable scrolling */
+}
+
+body.landing .backgroundimage {
+    z-index: 0;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 68vh;  /* full viewport height */
+    width: 100vw;   /* full viewport width */
+    background-image: url(../images/background.jpeg);
+}
+
+.backgroundimage {
+    z-index: 0;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 100%;
+    width: 100%;
+    background-image: url(../images/background.jpeg);
+}
+
+/*@keyframes animate {
+    0%,100%{
+        background-image: url(../images/background.jpeg);
+    }
+    33%{
+        background-image: url(../images/129290658_2870974616500034_7732703758045352225_n.jpg);
+    }
+    66%{
+        background-image: url(../images/tumblr_cf19030186ccac756cf2f8373f276ca6_8862994f_2048.jpg);
+    }
+}
+*/
+
+.nav-bar, .nav-links {
+    z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: calc(0.75vw + 0.75vh);
+    font-weight: 200;
+    width: 100vw;
+    height: 10vh;
+    margin: auto;
+    display: flex;
+    list-style: none;
+    justify-content: space-around;
+    align-items: center;
+    text-align: center;
+    transition: background-color 500ms linear;
+}
+
+.nav-bar.scrolling, .nav-links.scrolling {
+    z-index: 100;
+    background-color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: calc(0.75vw + 0.75vh);
+    font-weight: 200;
+    width: 100vw;
+    height: 10vh;
+    margin: auto;
+    display: flex;
+    list-style: none;
+    justify-content: space-around;
+    align-items: center;
+    text-align: center;
+    transition: background-color 750ms linear;
+}
+
+
+.nav-bar a {
+    transition: color 500ms linear;
+    z-index: 100;
+    color: black;
+    text-decoration: none;   
+}
+.nav-bar a:hover {
+    z-index: 100;
+    color: black;
+    text-decoration: underline;
+}
+.nav-bar a.scrolling {
+    transition: color 750ms ease-out;
+    z-index: 100;
+    color: #6e6e6e!important;
+}
+
+.nav-bar-pending, .nav-links-pending {
+    z-index: 100;
+    position: fixed;
+    font-size: calc(0.75vw + 0.75vh);
+    font-weight: 200;
+    width: 100vw;
+    height: 10vh;
+    margin: auto;
+    display: flex;
+    list-style: none;
+    justify-content: space-around;
+    align-items: center;
+    text-align: center;
+}
+
+.nav-bar-pending a {
+    transition: color 750ms linear;
+    z-index: 100;
+    color: #6e6e6e;
+    text-decoration: none;   
+}
+.nav-bar-pending a:hover {
+    z-index: 100;
+    color: #6e6e6e;
+    text-decoration: underline;
+}
+
+.nowtinteresting {
+    z-index: 1;
+    font-size: calc(2vw + 2vh);
+    font-weight: 200;
+    color: white;
+    line-height: 100%;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    text-align: center;
+    height: 33vh;
+    width: 100%;
+    right: 0;
+    left: 0;
+    bottom: 150px;
+    top: 0;
+    margin: auto;
+}
+
+.nowtinteresting:hover {
+    cursor: default;
+}
+
+.nowtinteresting.scrolling {
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
+    font-size: calc(1vw + 1vw);
+}
+
+.definition {
+    font-size: calc(1vw + 1vh);
+    font-weight: 100;
+    color: white;
+    line-height: 100%;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    text-align: center;
+    height: 10vh;
+    height: 50vh;
+    width: 100%;
+    right: 0;
+    left: 0;
+    bottom: 50px;
+    top: 0;
+    margin: auto;
+    font-style: italic;
+}
+
+
+@keyframes FadeIn { 
+    0% {
+      opacity: 0;
+      transform: scale(.1);
+    }
+  
+    85% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+/*.letters{
+    animation: FadeIn 1s linear;
+    animation-fill-mode: both;
+}*/
+
+.pending {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    text-align: center;
+    height: 100vh;
+    width: 100vw;
+    font-size: calc(0.75vw + 0.75vh);
+    font-weight: 200;
+    color: #6e6e6e;
+}
+
+.pending:hover {
+    cursor: default;
+}
+
+/*
+.letters:nth-child(1) {animation-delay: .5s}
+.letters:nth-child(2) {animation-delay: 1s}
+.letters:nth-child(3) {animation-delay: 1.5s}
+.letters:nth-child(4) {animation-delay: 2s}
+.letters:nth-child(5) {animation-delay: 2.5s}
+.letters:nth-child(6) {animation-delay: 3s}
+.letters:nth-child(7) {animation-delay: 3.5s}
+.letters:nth-child(8) {animation-delay: 4s}
+.letters:nth-child(9) {animation-delay: 4.5s}
+.letters:nth-child(10) {animation-delay: 5s}
+.letters:nth-child(11) {animation-delay: 5.5s}
+.letters:nth-child(12) {animation-delay: 6s}
+.letters:nth-child(13) {animation-delay: 6.5s}
+.letters:nth-child(14) {animation-delay: 7s}
+.letters:nth-child(15) {animation-delay: 7.5s}
+*/
+
+.gapfilldiff {
+    display: flex;
+    flex-direction: column;
+    height: 15vh;
+}
+
+.gapfill {
+    display: flex;
+    flex-direction: column;
+    height: 10vh;
+}
+
+.gapfillphoto {
+    display: flex;
+    flex-direction: column;
+    height: 5vh;
+}
+
+.aboutprojectcontainer {
+    align-items: top;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    width: 100%;
+    margin: auto;
+    height: 50%;
+}
+
+.researchcontainer {
+    display: flex;
+    flex-direction: column;      /* stack publications vertically */
+    text-align: center;
+    justify-content: flex-start; /* let content start from top */
+    width: 100%;
+    margin: auto;
+    height: auto;                /* let content determine height */
+}
+
+.projectpara {
+    font-weight: 200;
+    font-size: calc(0.75vw + 0.75vh);
+    width: 100%;
+    color: #6e6e6e;
+}
+
+/*.linetext {
+    align-items: center;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    width: 100%;
+    margin: auto;
+}
+
+.playground {
+    font-weight: 200;
+    font-size: calc(0.75vw + 0.75vh);
+    width: 100%;
+    font-style: italic;
+}
+
+
+.aboutimage {
+    float: right;
+    height: 60vh;
+    width: 30vw;
+    object-fit: cover;
+    border-radius: 10px;
+}*/
+
+.socials {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 15vh;
+    width: 100%;
+    max-width: 100%;
+}
+
+.socials ul {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    list-style: none;
+}
+
+.socials ul li {
+    margin: 0 10px;
+}
+
+.socials ul li a {
+    display: flex;               /* flex ensures perfect centering */
+    justify-content: center;     /* horizontal center */
+    align-items: center;         /* vertical center */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    text-align: center;
+    box-shadow: 0px 7px 5px rgba(0, 0, 0, 0.5);
+    font-size: 22px;             /* adjust icon size */
+    transition: transform 0.5s;
+}
+
+.socials ul li a:hover {
+    transform: translateY(-10px); /* lift circle slightly on hover */
+}
+
+.socials ul li .fa, 
+.socials ul li .fa-brands {
+    color: white;
+    line-height: 1;               /* ensures vertical alignment */
+}
+
+/* Circle background colors */
+.socials ul li:nth-child(1) a { background-color: #55acee; } /* Instagram */
+.socials ul li:nth-child(2) a { background-color: #ef4056; } /* Letterboxd */
+.socials ul li:nth-child(3) a { background-color: #0077b5; } /* Google Scholar */
+.socials ul li:nth-child(4) a { background-color: #00405d; } /* ResearchGate */
+
+.gallerytextcontainer {align-items: center;
+    display: block;
+    text-align: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    margin: auto;
+}
+
+.gallerytextheader {
+    font-weight: 200;
+    font-size: calc(1vw + 1vh);
+}
+
+.media1, .media2, .media3, .media4, .media5, .media6 {align-items: center;
+    display: block;
+    text-align: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    margin: auto;
+}
+
+img {
+    max-height: fit-content;
+    max-width: fit-content;
+    object-fit: contain;
+    height: 40%;
+    width: 70%;
+    border-radius: 1%;
+}
+
+img:hover {
+    
+}
+
+.description1, .description2, .description3, .description4, .description5, .description6 {
+    font-weight: 200;
+    font-size: calc(0.75vw + 0.75vh);
+    font-style: italic;
+    color: #6e6e6e;
+}
+
+/*.socials {
+    background-color: white;
+    width: 100%;
+    height: 20vh;
+    display: flex;
+    list-style: none;
+    justify-content: space-around;
+    align-items: center;
+}
+
+@media (max-width:375px) {
+    .socials img {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* --- research section --- */
+#research {
+  text-align: center;   /* center h2 headings */
+  margin: 20px auto;
+  max-width: 80%;       /* constrain width */
+}
+
+#research h2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-align: center;    /* explicitly center headings */
+}
+
+/* Lists inside research */
+.publications, .underreview, .conferences, .education {
+    list-style: none;
+    padding: 0;
+    margin: 12px auto;
+    display: block;
+    width: 100%;
+    text-align: left;
+    max-width: 100%;
+}
+
+.publications li, .underreview li, .conferences li, .education li {
+  margin: 12px auto;
+  font-size: calc(0.75vw + 0.75vh);
+  line-height: 1.5em;
+}
+
+/* Paper/degree rows */
+.paper-row {
+  display: flex;
+  align-items: flex-start;     /* align icon to top of text */
+  justify-content: space-between; /* push content apart if needed */
+  width: 100%;
+}
+
+.paper-row i {
+  flex: 0 0 30px;             /* fixed width column for icon */
+  text-align: center;
+  margin-right: 10px;
+  color: #333;
+  font-size: 1em;
+  line-height: 1.5em;
+  align-self: flex-start;     /* icon sticks to top of first text line */
+}
+
+.paper-text {
+  flex: 1;                    /* take remaining space */
+  text-align: justify;        /* evenly align text across row */
+  white-space: normal;        /* allow wrapping */
+}
+
+.paper-text a {
+  white-space: nowrap;        /* DOI or link stays unbroken */
+  text-decoration: underline;
+  color: #0077b5;
+}
+
+/* Education rows */
+.education-row {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin: 10px auto;
+  font-size: calc(0.75vw + 0.75vh);
+}
+
+.education-row i {
+  flex: 0 0 30px;       /* fixed column for icon */
+  text-align: center;
+  margin-right: 10px;   /* spacing between icon and text */
+  color: #333;
+  font-size: 1em;
+  line-height: 1.5em;
+  align-self: flex-start;
+}
+
+.education-left {
+  flex: 1;                      /* take up remaining space */
+  display: flex;
+  flex-direction: column;        /* stack degree above university */
+  text-align: left;
+}
+
+.education-left .degree {
+  font-weight: normal;           /* keep light */
+}
+
+.education-left .university {
+  font-weight: normal;
+  font-style: italic;            /* optional styling for distinction */
+  color: #6e6e6e;
+}
+
+.education-right {
+  white-space: nowrap;
+  margin-left: auto;             /* push to far right */
+  text-align: right;
+}
+
+/* --- gallery section --- */
+#gallery {
+  text-align: center;   /* center everything inside */
+  margin: 20px auto;    /* give some space above and below */
+  max-width: 800px;     /* keep it from being too wide */
+}
+
+#gallery h2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;     /* matches your light style elsewhere */
+  font-size: 2em;
+  margin-bottom: 20px;
+}
