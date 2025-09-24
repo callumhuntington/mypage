@@ -390,8 +390,8 @@ img {
     max-height: fit-content;
     max-width: fit-content;
     object-fit: contain;
-    height: 40%;
-    width: 70%;
+    height: 50%;
+    width: 80%;
     border-radius: 1%;
 }
 
