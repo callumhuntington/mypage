@@ -349,10 +349,10 @@ body.landing .backgroundimage {
 }
 
 /* Circle background colors */
-.socials ul li:nth-child(1) a { background-color: #55acee; } /* Instagram */
-.socials ul li:nth-child(2) a { background-color: #ef4056; } /* Letterboxd */
-.socials ul li:nth-child(3) a { background-color: #0077b5; } /* Google Scholar */
-.socials ul li:nth-child(4) a { background-color: #00405d; } /* ResearchGate */
+.socials ul li:nth-child(1) a { background-color: #4b3832; } /* Instagram */
+.socials ul li:nth-child(3) a { background-color: #4285f4; } /* Google Scholar */
+.socials ul li:nth-child(4) a { background-color: #82f5ca; } /* ResearchGate */
+.socials ul li:nth-child(2) a { background-color: #ff8000; } /* Letterboxd */
 
 .gallerytextcontainer {align-items: center;
     display: block;
