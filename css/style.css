@@ -558,7 +558,8 @@ img:hover {
 /* --- gallery section --- */
 #gallery {
   text-align: center;   /* center everything inside */
-  margin: 30px auto;    /* give some space above and below */
+  scroll-margin-top: 10vh; /* or fixed px like 60px */
+  /* margin: 30px auto;    /* give some space above and below */
   max-width: 90%;     /* keep it from being too wide */
 }
 
