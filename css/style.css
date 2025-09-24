@@ -1,9 +1,37 @@
 * {
     margin: 0px;
     padding: 0px;
-    box-sizing: 0px;
+    box-sizing: border-box;
     font-family: sans-serif;
 }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* full viewport height */
+}
+
+.backgroundimage {
+  flex: 7; /* 70% */
+  background: url('../img/yourimage.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+.content {
+  flex: 3; /* 30% */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centers text/socials vertically */
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
 
 /* Only for landing page */
 body.landing, html.landing {
@@ -253,7 +281,7 @@ body.landing .backgroundimage {
 }
 
 .aboutprojectcontainer {
-    align-items: top;
+    align-items: flex-start;
     display: flex;
     text-align: center;
     justify-content: center;
@@ -267,7 +295,7 @@ body.landing .backgroundimage {
     flex-direction: column;      /* stack publications vertically */
     text-align: center;
     justify-content: flex-start; /* let content start from top */
-    width: 80%;
+    width: 90%;
     margin: auto;
     height: auto;                /* let content determine height */
 }
@@ -417,8 +445,8 @@ img:hover {
 /* --- mathematics section --- */
 #mathematics {
   text-align: center;   /* center h2 headings */
-  margin: 20px auto;
-  max-width: 80%;       /* constrain width */
+  margin: 30px auto;
+  max-width: 100%;       /* constrain width */
 }
 
 #mathematics h2 {
@@ -471,9 +499,8 @@ img:hover {
 }
 
 .paper-text a {
-  white-space: nowrap;        /* DOI or link stays unbroken */
-  text-decoration: underline;
-  color: #0077b5;
+  white-space: normal;   /* allow wrapping */
+  word-break: break-word; /* ensures very long URLs can wrap */
 }
 
 /* Education rows */
@@ -521,8 +548,8 @@ img:hover {
 /* --- gallery section --- */
 #gallery {
   text-align: center;   /* center everything inside */
-  margin: 20px auto;    /* give some space above and below */
-  max-width: 800px;     /* keep it from being too wide */
+  margin: 30px auto;    /* give some space above and below */
+  max-width: 90%;     /* keep it from being too wide */
 }
 
 #gallery h2 {
