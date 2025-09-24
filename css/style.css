@@ -262,7 +262,7 @@ body.landing .backgroundimage {
     height: 50%;
 }
 
-.researchcontainer {
+.mathematicscontainer {
     display: flex;
     flex-direction: column;      /* stack publications vertically */
     text-align: center;
@@ -414,14 +414,14 @@ img:hover {
     }
 }
 
-/* --- research section --- */
-#research {
+/* --- mathematics section --- */
+#mathematics {
   text-align: center;   /* center h2 headings */
   margin: 20px auto;
   max-width: 80%;       /* constrain width */
 }
 
-#research h2 {
+#mathematics h2 {
   font-family: 'Poppins', sans-serif;
   font-weight: 300;
   font-size: 2em;
@@ -429,7 +429,7 @@ img:hover {
   text-align: center;    /* explicitly center headings */
 }
 
-/* Lists inside research */
+/* Lists inside mathematics */
 .publications, .underreview, .conferences, .education {
     list-style: none;
     padding: 0;
