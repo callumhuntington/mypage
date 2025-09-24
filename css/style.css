@@ -30,7 +30,6 @@ html, body {
   padding: 1rem;
 }
 
-
 /* Only for landing page */
 body.landing, html.landing {
     height: 100%;
