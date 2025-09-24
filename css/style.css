@@ -10,26 +10,36 @@ html, body {
   margin: 0;
 }
 
+/* make sure the page wrapper fills the visible viewport */
 .page-wrapper {
+  /* fallback order: old 100vh, iOS fill-available, then modern dynamic */
+  height: 100vh;
+  height: -webkit-fill-available;
+  height: 100dvh; /* best on modern browsers */
   display: flex;
   flex-direction: column;
-  height: 100vh; /* full viewport height */
 }
 
+/* 70/30 split */
 .backgroundimage {
-  flex: 7; /* 70% */
-  background: url('../img/yourimage.jpg') no-repeat center center;
-  background-size: cover;
+  flex: 7 0 0;                /* top 70% */
+  min-height: 0;              /* allows flex items to shrink properly */
+  background: url('../images/background.jpeg') center/cover no-repeat;
 }
 
 .content {
-  flex: 3; /* 30% */
+  flex: 3 0 0;                /* bottom 30% */
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centers text/socials vertically */
+  justify-content: center;
   align-items: center;
-  text-align: center;
   padding: 1rem;
+  /* respect iPhone safe area so icons aren't hidden by the home indicator */
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  box-sizing: border-box;
+  overflow-y: auto;           /* allow scroll if content grows */
+  -webkit-overflow-scrolling: touch;
 }
 
 
