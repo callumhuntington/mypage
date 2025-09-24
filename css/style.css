@@ -10,36 +10,26 @@ html, body {
   margin: 0;
 }
 
-/* make sure the page wrapper fills the visible viewport */
 .page-wrapper {
-  /* fallback order: old 100vh, iOS fill-available, then modern dynamic */
-  height: 100vh;
-  height: -webkit-fill-available;
-  height: 100dvh; /* best on modern browsers */
   display: flex;
   flex-direction: column;
+  height: 100vh; /* full viewport height */
 }
 
-/* 70/30 split */
 .backgroundimage {
-  flex: 7 0 0;                /* top 70% */
-  min-height: 0;              /* allows flex items to shrink properly */
-  background: url('../images/background.jpeg') center/cover no-repeat;
+  flex: 7; /* 70% */
+  background: url('../img/yourimage.jpg') no-repeat center center;
+  background-size: cover;
 }
 
 .content {
-  flex: 3 0 0;                /* bottom 30% */
-  min-height: 0;
+  flex: 3; /* 30% */
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: center; /* centers text/socials vertically */
   align-items: center;
+  text-align: center;
   padding: 1rem;
-  /* respect iPhone safe area so icons aren't hidden by the home indicator */
-  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
-  box-sizing: border-box;
-  overflow-y: auto;           /* allow scroll if content grows */
-  -webkit-overflow-scrolling: touch;
 }
 
 
@@ -83,60 +73,44 @@ body.landing .backgroundimage {
 }
 */
 
-.nav-bar, .nav-links {
-    z-index: 100;
+.nav-bar {
     position: fixed;
     top: 0;
-    left: 0;
-    font-size: calc(0.75vw + 0.75vh);
-    font-weight: 200;
-    width: 100vw;
+    left: 0.66vh;
+    width: 100%;
     height: 10vh;
-    margin: auto;
     display: flex;
-    list-style: none;
-    justify-content: space-around;
+    justify-content: space-evenly; /* evenly distributes links across full width */
     align-items: center;
     text-align: center;
+    z-index: 100;
+    background-color: transparent; /* change if you have scrolling effect */
     transition: background-color 500ms linear;
 }
 
-.nav-bar.scrolling, .nav-links.scrolling {
-    z-index: 100;
+/* Optional: different color when scrolling */
+.nav-bar.scrolling {
     background-color: white;
-    position: fixed;
-    top: 0;
-    left: 0;
-    font-size: calc(0.75vw + 0.75vh);
-    font-weight: 200;
-    width: 100vw;
-    height: 10vh;
-    margin: auto;
-    display: flex;
-    list-style: none;
-    justify-content: space-around;
-    align-items: center;
-    text-align: center;
     transition: background-color 750ms linear;
 }
 
-
 .nav-bar a {
+    color: black;
+    text-decoration: none;
+    font-weight: 200;
     transition: color 500ms linear;
-    z-index: 100;
-    color: black;
-    text-decoration: none;   
 }
+
 .nav-bar a:hover {
-    z-index: 100;
-    color: black;
     text-decoration: underline;
+    color: black;
 }
+
 .nav-bar a.scrolling {
+    color: #6e6e6e !important;
     transition: color 750ms ease-out;
-    z-index: 100;
-    color: #6e6e6e!important;
 }
+
 
 .nav-bar-pending, .nav-links-pending {
     z-index: 100;
@@ -308,7 +282,7 @@ body.landing .backgroundimage {
     width: 90%;
     margin: auto;
     height: auto;                /* let content determine height */
-}
+} 
 
 .projectpara {
     font-weight: 200;
@@ -455,7 +429,7 @@ img:hover {
 /* --- mathematics section --- */
 #mathematics {
   text-align: center;   /* center h2 headings */
-  margin: 30px auto;
+  margin: auto;
   max-width: 100%;       /* constrain width */
 }
 
@@ -558,9 +532,8 @@ img:hover {
 /* --- gallery section --- */
 #gallery {
   text-align: center;   /* center everything inside */
-  scroll-margin-top: 10vh; /* or fixed px like 60px */
-  /* margin: 30px auto;    /* give some space above and below */
-  max-width: 90%;     /* keep it from being too wide */
+  margin: auto;    /* give some space above and below */
+  max-width: 100%;     /* keep it from being too wide */
 }
 
 #gallery h2 {
