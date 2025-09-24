@@ -267,7 +267,7 @@ body.landing .backgroundimage {
     flex-direction: column;      /* stack publications vertically */
     text-align: center;
     justify-content: flex-start; /* let content start from top */
-    width: 100%;
+    width: 80%;
     margin: auto;
     height: auto;                /* let content determine height */
 }
