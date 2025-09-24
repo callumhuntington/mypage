@@ -283,7 +283,7 @@ body.landing .backgroundimage {
 
 .projectpara {
     font-weight: 200;
-    font-size: calc(0.75vw + 0.75vh);
+    font-size: calc(0.9vw + 0.9vh);
     width: 100%;
     color: #6e6e6e;
 }
