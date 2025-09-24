@@ -17,7 +17,7 @@ body.landing .backgroundimage {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
-    height: 68vh;  /* full viewport height */
+    height: 66vh;  /* full viewport height */
     width: 100vw;   /* full viewport width */
     background-image: url(../images/background.jpeg);
 }
