@@ -391,8 +391,8 @@ img {
     max-width: fit-content;
     object-fit: contain;
     height: 50%;
-    width: 80%;
-    border-radius: 1%;
+    width: 70%;
+    border-radius: 2%;
 }
 
 img:hover {
