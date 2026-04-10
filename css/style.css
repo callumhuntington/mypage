@@ -439,7 +439,7 @@ img:hover {
 }
 
 /* Lists inside mathematics */
-.publications, .underreview, .conferences, .education {
+.education, .publications, .underreview, .inpreparation, .conferences {
     list-style: none;
     padding: 0;
     margin: 12px auto;
@@ -449,7 +449,7 @@ img:hover {
     max-width: 100%;
 }
 
-.publications li, .underreview li, .conferences li, .education li {
+.education li, .publications li, .underreview li, .inpreparation li, .conferences li {
   margin: 12px auto;
   font-size: calc(0.75vw + 0.75vh);
   line-height: 1.5em;
