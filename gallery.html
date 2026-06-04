@@ -28,6 +28,87 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZGGQLFW2KZ"></script>
     <title>callum huntington</title>
+<style>
+/* ── photo grid ── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 85%;
+  margin: 0 auto;
+}
+
+.grid-item {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;   /* square cells */
+  border-radius: 4px;
+}
+
+.grid-item a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.grid-item:hover img {
+  transform: scale(1.04);
+}
+
+/* caption overlay */
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 14px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  border-radius: 4px;
+}
+
+.grid-item:hover .grid-overlay {
+  opacity: 1;
+}
+
+.grid-overlay span {
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 200;
+  font-style: italic;
+  font-size: calc(0.55vw + 0.55vh);
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+/* override the global img rule for grid items only */
+.photo-grid img {
+  max-height: unset;
+  max-width: unset;
+  height: 100%;
+  width: 100%;
+}
+
+/* mobile: drop to two columns */
+@media (max-width: 600px) {
+  .photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 95%;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -39,83 +120,71 @@
 </ul>
 </nav>
 
-<div class="gapfillphoto">
-</div>
-<div class="gapfillphoto">
-</div>
+<div class="gapfillphoto"></div>
+<div class="gapfillphoto"></div>
 
 <div id="gallery" class="gapfill">
-<h2>gallery</h2>
-</div>
-	
-<div class = "media1">
-<a href="./images/syracuse.jpeg" data-lightbox="mygallery" data-title="syracuse, sicily (2020)">
-<img src="./images/syracuse.jpeg" class="photo1"></a>
-<p class="description1"><br>syracuse, sicily (2020)</p>
+  <h2>gallery</h2>
 </div>
 
-<div class="gapfillphoto">
-</div>
-	
-<div class = "media2">
-<a href="./images/parkhill.jpeg" data-lightbox="mygallery" data-title="sheffield, yorkshire (2024)">
-<img src="./images/parkhill.jpeg" class="photo2"></a>
-<p class="description2"><br>sheffield, yorkshire (2024)</p>
+<div class="photo-grid">
+
+  <div class="grid-item">
+    <a href="./images/syracuse.jpeg" data-lightbox="mygallery" data-title="syracuse, sicily (2020)">
+      <img src="./images/syracuse.jpeg" alt="syracuse, sicily (2020)">
+      <div class="grid-overlay"><span>syracuse, sicily (2020)</span></div>
+    </a>
+  </div>
+
+  <div class="grid-item">
+    <a href="./images/parkhill.jpeg" data-lightbox="mygallery" data-title="sheffield, yorkshire (2024)">
+      <img src="./images/parkhill.jpeg" alt="sheffield, yorkshire (2024)">
+      <div class="grid-overlay"><span>sheffield, yorkshire (2024)</span></div>
+    </a>
+  </div>
+
+  <div class="grid-item">
+    <a href="./images/capetown.jpeg" data-lightbox="mygallery" data-title="cape town, south africa (2025)">
+      <img src="./images/capetown.jpeg" alt="cape town, south africa (2025)">
+      <div class="grid-overlay"><span>cape town, south africa (2025)</span></div>
+    </a>
+  </div>
+
+  <div class="grid-item">
+    <a href="./images/matera.jpeg" data-lightbox="mygallery" data-title="matera, basilicata (2023)">
+      <img src="./images/matera.jpeg" alt="matera, basilicata (2023)">
+      <div class="grid-overlay"><span>matera, basilicata (2023)</span></div>
+    </a>
+  </div>
+
+  <div class="grid-item">
+    <a href="./images/gaiola.jpeg" data-lightbox="mygallery" data-title="naples, campania (2023)">
+      <img src="./images/gaiola.jpeg" alt="naples, campania (2023)">
+      <div class="grid-overlay"><span>naples, campania (2023)</span></div>
+    </a>
+  </div>
+
+  <div class="grid-item">
+    <a href="./images/hollywood.jpeg" data-lightbox="mygallery" data-title="los angeles, california (2019)">
+      <img src="./images/hollywood.jpeg" alt="los angeles, california (2019)">
+      <div class="grid-overlay"><span>los angeles, california (2019)</span></div>
+    </a>
+  </div>
+
 </div>
 
-<div class="gapfillphoto">
-</div>
+<div class="gapfillphoto"></div>
 
-<div class = "media3">
-<a href="./images/capetown.jpeg" data-lightbox="mygallery" data-title="cape town, south africa (2025)">
-<img src="./images/capetown.jpeg" class="photo3"></a>
-<p class="description3"><br>cape town, south africa (2025)</p>
-</div>
-
-<div class="gapfillphoto">
-</div>
-	
-<div class = "media4">
-<a href="./images/matera.jpeg" data-lightbox="mygallery" data-title="matera, basilicata (2023)">
-<img src="./images/matera.jpeg" class="photo4"></a>
-<p class="description4"><br>matera, basilicata (2023)</p>
-</div>
-
-<div class="gapfillphoto">
-</div>
-
-<div class = "media5">
-<a href="./images/gaiola.jpeg" data-lightbox="mygallery" data-title="naples, campania (2023)">
-<img src="./images/gaiola.jpeg" class="photo5"></a>
-<p class="description5"><br>naples, campania (2023)</p>
-</div>
-        
-<div class="gapfillphoto">
-</div>
-
-<div class = "media6">
-<a href="./images/hollywood.jpeg" data-lightbox="mygallery" data-title="los angeles, california (2019)">
-<img src="./images/hollywood.jpeg" class="photo6"></a>
-<p class="description6"><br>los angeles, california (2019)</p>
-</div>
-        
-<div class="gapfillphoto">
-</div>
-
-<!-- Footer or socials (optional) -->
 <footer>
-<div class="socials">
-<ul>
-<li><a href="https://www.instagram.com/cllmhntngtn" target="_blank" rel="noopener noreferrer""><i class="fa-brands fa-instagram"></i></a></li>
-<li><a href="https://www.letterboxd.com/cllmhntngtn" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-letterboxd"></i></a></li>
-<li><a href="https://scholar.google.com/citations?hl=en&user=7Su3gI0AAAAJ" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-google-scholar"></i></a></li>
-<li><a href="https://www.researchgate.net/profile/Callum-Huntington?ev=hdr_xprf" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-researchgate"></i></a></li>
-</ul>
-</div>
+  <div class="socials">
+    <ul>
+      <li><a href="https://www.instagram.com/cllmhntngtn" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i></a></li>
+      <li><a href="https://www.letterboxd.com/cllmhntngtn" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-letterboxd"></i></a></li>
+      <li><a href="https://scholar.google.com/citations?hl=en&user=7Su3gI0AAAAJ" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-google-scholar"></i></a></li>
+      <li><a href="https://www.researchgate.net/profile/Callum-Huntington?ev=hdr_xprf" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-researchgate"></i></a></li>
+    </ul>
+  </div>
 </footer>
 
-  <!-- Scripts -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="app.js"></script>
 </body>
 </html>
