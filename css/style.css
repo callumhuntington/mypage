@@ -102,9 +102,21 @@ body.landing .backgroundimage {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
-    height: 66vh;  /* full viewport height */
-    width: 100vw;   /* full viewport width */
+    height: 66vh;
+    width: 100%;     /* not 100vw: that includes the scrollbar and causes
+                        a horizontal overflow on desktop */
     background-image: url(../images/background.jpeg);
+
+    /* A flex item cannot shrink below its own content, and .content is full of
+       text while this is empty — so at the old 7:3 ratio the text took whatever
+       it needed and this absorbed all the loss. Give the photograph a floor and
+       let the text below simply take its natural height. */
+    flex: 1 1 auto;
+    min-height: 42vh;
+}
+
+body.landing .content {
+    flex: 0 1 auto;
 }
 
 .backgroundimage {
