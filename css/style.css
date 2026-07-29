@@ -1,8 +1,20 @@
+/* The webfont. Without this, 'Orbita Traced' only resolves on a machine
+   where the .otf happens to be installed locally — everyone else silently
+   gets the sans-serif fallback. Path is relative to this file: style.css
+   sits in /css/, so ../fonts/ is /fonts/ at the site root. */
+@font-face {
+  font-family: 'Orbita Traced';
+  src: url('../fonts/OrbitaTraced.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --font-display: 'Orbita Traced', sans-serif;
   --font-body: 'Poppins', sans-serif;
 
-  --weight-body: 200;    /* body text and nav labels */
+  --weight-body: 300;    /* body text. 200 was too thin under Orbita. */
   --weight-light: 100;   /* the italic caption on the landing image */
   --weight-display: 400; /* Orbita has one weight only — don't ask it for 300 */
 }
@@ -40,6 +52,22 @@ html, body {
   align-items: center;
   text-align: center;
   padding: 1rem;
+}
+
+/* Landing masthead. Delete this rule and its element in index.html if you
+   would rather the page opened straight onto the photograph. */
+.masthead {
+    flex: 0 0 auto;              /* takes its own height; the photo and the
+                                    text below still divide what is left 7:3 */
+    margin-top: 10vh;            /* clear the fixed nav bar */
+    padding: 0.1em 1rem 0.15em;
+    font-family: var(--font-display);
+    font-weight: var(--weight-display);
+    font-size: clamp(2rem, 7.5vw, 4.6rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-align: center;
+    color: #1a1a1a;
 }
 
 /* Only for landing page */
@@ -106,7 +134,10 @@ body.landing .backgroundimage {
 .nav-bar a {
     color: black;
     text-decoration: none;
-    font-weight: var(--weight-body);
+    font-family: var(--font-display);
+    font-weight: var(--weight-display);
+    letter-spacing: 0.04em;
+    font-size: calc(0.5vw + 0.5vh + 0.4rem);
     transition: color 500ms linear;
 }
 
