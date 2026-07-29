@@ -24,10 +24,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;1,100;1,200;1,300;1,400&display=swap" rel="stylesheet">
 
 <link rel="preload" href="fonts/OrbitaTraced.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/style.css?v=4">
-<link rel="stylesheet" href="css/lightbox.css">
+
+<!-- Third-party stylesheets FIRST. Bootstrap's reboot sets body{font-family},
+     and at equal specificity whichever loads last wins — so style.css has to
+     come after it or every body rule here is silently discarded. -->
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link rel="stylesheet" href="css/lightbox.css">
+<link rel="stylesheet" href="css/style.css?v=5">
 </head>
 
 <body>
