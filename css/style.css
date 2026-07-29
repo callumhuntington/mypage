@@ -12,11 +12,27 @@
 
 :root {
   --font-display: 'Orbita Traced', sans-serif;
-  --font-body: 'Poppins', sans-serif;
 
-  --weight-body: 300;    /* body text. 200 was too thin under Orbita. */
+  /* PLACEHOLDER SERIF. Georgia ships on effectively every device, so this
+     costs no download and nothing can fail to load. When you pick a real one,
+     change these two together: a webfont with light weights wants 300, but
+     Georgia only has 400 and 700, and asking it for 300 just gets you 400. */
+  --font-body: Georgia, 'Times New Roman', Times, serif;
+  --weight-body: 400;
+
   --weight-light: 100;   /* the italic caption on the landing image */
   --weight-display: 400; /* Orbita has one weight only — don't ask it for 300 */
+
+  /* Type scale. clamp(minimum, preferred, maximum): the middle value grows
+     with the viewport, the outer two stop it running away at either end.
+     The rem component is what makes these respect a reader's browser font
+     size — pure vw sizing ignores it completely. */
+  --size-caption: clamp(0.70rem, 0.62rem + 0.30vw, 0.95rem);
+  --size-small:   clamp(0.85rem, 0.80rem + 0.18vw, 1.00rem);
+  --size-body:    clamp(1.00rem, 0.90rem + 0.30vw, 1.20rem);
+  --size-lede:    clamp(1.05rem, 0.95rem + 0.35vw, 1.35rem);
+  --size-nav:     clamp(0.95rem, 0.85rem + 0.35vw, 1.35rem);
+  --size-h2:      clamp(1.50rem, 1.20rem + 1.10vw, 2.30rem);
 }
 
 * {
@@ -32,6 +48,7 @@ html, body {
   margin: 0;
   font-family: var(--font-body);
   font-weight: var(--weight-body);
+  line-height: 1.55;
 }
 
 .page-wrapper {
@@ -74,7 +91,10 @@ html, body {
 body.landing, html.landing {
     height: 100%;
     margin: 0;
-    overflow: hidden; /* disable scrolling */
+    /* Was overflow: hidden. With the text now at a readable size the landing
+       content can outgrow a short screen, and hidden would silently clip the
+       contact line off the bottom. auto shows no scrollbar when it fits. */
+    overflow-y: auto;
 }
 
 body.landing .backgroundimage {
@@ -113,7 +133,8 @@ body.landing .backgroundimage {
 .nav-bar {
     position: fixed;
     top: 0;
-    left: 0.66vh;
+    left: 0;                 /* was 0.66vh, which pushed a 100%-wide bar
+                                a few pixels past the right edge */
     width: 100%;
     height: 10vh;
     display: flex;
@@ -137,7 +158,7 @@ body.landing .backgroundimage {
     font-family: var(--font-display);
     font-weight: var(--weight-display);
     letter-spacing: 0.04em;
-    font-size: calc(0.5vw + 0.5vh + 0.4rem);
+    font-size: var(--size-nav);
     transition: color 500ms linear;
 }
 
@@ -155,7 +176,7 @@ body.landing .backgroundimage {
 .nav-bar-pending, .nav-links-pending {
     z-index: 100;
     position: fixed;
-    font-size: calc(0.75vw + 0.75vh);
+    font-size: var(--size-body);
     font-weight: var(--weight-body);
     width: 100vw;
     height: 10vh;
@@ -181,10 +202,10 @@ body.landing .backgroundimage {
 
 .nowtinteresting {
     z-index: 1;
-    font-size: calc(2vw + 2vh);
+    font-size: clamp(1.75rem, 1.4rem + 1.6vw, 3rem);
     font-weight: var(--weight-body);
     color: white;
-    line-height: 100%;
+    line-height: 1.1;
     position: absolute;
     justify-content: center;
     align-items: center;
@@ -207,14 +228,14 @@ body.landing .backgroundimage {
     position: absolute;
     bottom: 8px;
     right: 16px;
-    font-size: calc(1vw + 1vw);
+    font-size: var(--size-body);
 }
 
 .definition {
-    font-size: calc(1vw + 1vh);
+    font-size: var(--size-body);
     font-weight: var(--weight-light);
     color: white;
-    line-height: 100%;
+    line-height: 1.1;
     position: absolute;
     justify-content: center;
     align-items: center;
@@ -259,7 +280,7 @@ body.landing .backgroundimage {
     text-align: center;
     height: 100vh;
     width: 100vw;
-    font-size: calc(0.75vw + 0.75vh);
+    font-size: var(--size-body);
     font-weight: var(--weight-body);
     color: #6e6e6e;
 }
@@ -320,13 +341,16 @@ body.landing .backgroundimage {
     text-align: center;
     justify-content: flex-start; /* let content start from top */
     width: 85%;
+    max-width: 46rem;            /* ~70 characters. The smaller of width and
+                                    max-width wins, so the phone keeps its 85%
+                                    and only wide screens get capped. */
     margin: auto;
     height: auto;                /* let content determine height */
 } 
 
 .projectpara {
     font-weight: var(--weight-body);
-    font-size: calc(0.9vw + 0.9vh);
+    font-size: var(--size-lede);
     width: 100%;
     color: #6e6e6e;
 }
@@ -417,7 +441,7 @@ body.landing .backgroundimage {
 
 .gallerytextheader {
     font-weight: var(--weight-body);
-    font-size: calc(1vw + 1vh);
+    font-size: var(--size-body);
 }
 
 .media1, .media2, .media3, .media4, .media5, .media6 {align-items: center;
@@ -444,7 +468,7 @@ img:hover {
 
 .description1, .description2, .description3, .description4, .description5, .description6 {
     font-weight: var(--weight-body);
-    font-size: calc(0.75vw + 0.75vh);
+    font-size: var(--size-small);
     font-style: italic;
     color: #6e6e6e;
 }
@@ -477,8 +501,9 @@ img:hover {
 #mathematics h2 {
   font-family: var(--font-display);
   font-weight: var(--weight-display);
-  font-size: 2em;
-  margin-bottom: 20px;
+  font-size: var(--size-h2);
+  margin: 1.8em 0 0.5em;  /* a heading belongs closer to what follows it
+                             than to what precedes it */
   text-align: center;    /* explicitly center headings */
 }
 
@@ -495,8 +520,8 @@ img:hover {
 
 .education li, .publications li, .underreview li, .inpreparation li, .conferences li {
   margin: 12px auto;
-  font-size: calc(0.75vw + 0.75vh);
-  line-height: 1.5em;
+  font-size: var(--size-body);
+  line-height: 1.6;
 }
 
 /* Paper/degree rows */
@@ -513,7 +538,7 @@ img:hover {
   margin-right: 10px;
   color: #333;
   font-size: 1em;
-  line-height: 1.5em;
+  line-height: 1.6;
   align-self: flex-start;     /* icon sticks to top of first text line */
 }
 
@@ -521,6 +546,9 @@ img:hover {
   flex: 1;                    /* take remaining space */
   text-align: justify;        /* evenly align text across row */
   white-space: normal;        /* allow wrapping */
+  -webkit-hyphens: auto;      /* Safari, including iOS, still needs the prefix */
+  hyphens: auto;              /* break points inside long words, so justifying
+                                 has something to work with besides word gaps */
 }
 
 .paper-text a {
@@ -534,7 +562,7 @@ img:hover {
   align-items: flex-start;
   width: 100%;
   margin: 10px auto;
-  font-size: calc(0.75vw + 0.75vh);
+  font-size: var(--size-body);
 }
 
 .education-row i {
@@ -543,7 +571,7 @@ img:hover {
   margin-right: 10px;   /* spacing between icon and text */
   color: #333;
   font-size: 1em;
-  line-height: 1.5em;
+  line-height: 1.6;
   align-self: flex-start;
 }
 
@@ -555,11 +583,11 @@ img:hover {
 }
 
 .education-left .degree {
-  font-weight: normal;           /* keep light */
+  font-weight: var(--weight-body);
 }
 
 .education-left .university {
-  font-weight: normal;
+  font-weight: var(--weight-body);
   font-style: italic;            /* optional styling for distinction */
   color: #6e6e6e;
 }
@@ -580,6 +608,6 @@ img:hover {
 #gallery h2 {
   font-family: var(--font-display);
   font-weight: var(--weight-display);
-  font-size: 2em;
-  margin-bottom: 20px;
+  font-size: var(--size-h2);
+  margin: 0 0 0.5em;
 }
