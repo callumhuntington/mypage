@@ -27,12 +27,58 @@
      with the viewport, the outer two stop it running away at either end.
      The rem component is what makes these respect a reader's browser font
      size — pure vw sizing ignores it completely. */
-  --size-caption: clamp(0.70rem, 0.62rem + 0.30vw, 0.95rem);
-  --size-small:   clamp(0.85rem, 0.80rem + 0.18vw, 1.00rem);
-  --size-body:    clamp(1.00rem, 0.90rem + 0.30vw, 1.20rem);
-  --size-lede:    clamp(1.05rem, 0.95rem + 0.35vw, 1.35rem);
-  --size-nav:     clamp(0.95rem, 0.85rem + 0.35vw, 1.35rem);
-  --size-h2:      clamp(1.50rem, 1.20rem + 1.10vw, 2.30rem);
+  /* These reproduce the old calc(Nvw + Nvh) values at the two widths you
+     judged them on — ~11px phone / ~21px laptop for the lede — but as a
+     rem + vw ramp, so they no longer depend on window HEIGHT and no longer
+     run away on a large monitor. The floor only engages below ~360px. */
+  --size-caption: clamp(0.42rem, 0.28rem + 0.58vw, 0.90rem);
+  --size-small:   clamp(0.55rem, 0.39rem + 0.79vw, 1.10rem);
+  --size-body:    clamp(0.55rem, 0.39rem + 0.79vw, 1.20rem);
+  --size-lede:    clamp(0.66rem, 0.46rem + 0.95vw, 1.45rem);
+  --size-nav:     clamp(1.10rem, 0.98rem + 0.50vw, 1.70rem);
+  --size-h2:      clamp(1.80rem, 1.45rem + 1.45vw, 3.10rem);
+
+  /* One accent, one radius, one speed — the three things that make a set of
+     parts read as a system rather than as separate decisions. */
+  --accent:      #c4362b;   /* warm red. 5.4:1 on white, so it is safe as link
+                               text. Do not swap in #ff8000: only 2.5:1. */
+  --accent-dark: #9c2a21;   /* hover */
+  --band:        #f4f1ea;   /* nav strip */
+  --rule:        #e2ddd3;   /* hairlines */
+
+  --shell:       6px;       /* thickness of the window surround */
+  --reveal:      6px;       /* gap between the surround and what sits inside */
+  /* The inner radius of a border is always the outer radius MINUS the border
+     width, so --radius has to exceed --shell + --reveal or the inside corners
+     come out square. 16 - 6 - 6 leaves 4px of curve on the photo itself. */
+  --radius:      16px;
+  --measure:     85%;       /* shared column width: mathematics modules and
+                               the landing photograph, so they line up */
+  --reveal-color: #ffffff;  /* what shows in the gap inside a window */
+  --ink:         #000000;   /* nav labels, and the social buttons with them */
+  --speed:       280ms;
+  --ease:        ease;
+}
+
+/* Links take the accent everywhere. The nav and the social icons set their own
+   colour and are more specific, so they are unaffected. */
+a {
+  color: var(--accent);
+  transition: color var(--speed) var(--ease);
+}
+
+a:hover {
+  color: var(--accent-dark);
+}
+
+/* A section of the mathematics page as a module: content sitting inside a
+   coloured shell with a window cut into it, same construction as a gallery
+   tile so the two pages share a family trait. */
+.module {
+  border: var(--shell) solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1.6rem 1.3rem 1.8rem;
+  margin-bottom: 1.6rem;
 }
 
 * {
@@ -49,6 +95,7 @@ html, body {
   font-family: var(--font-body);
   font-weight: var(--weight-body);
   line-height: 1.55;
+  background-color: var(--band);   /* same ground as the nav strip */
 }
 
 .page-wrapper {
@@ -76,7 +123,7 @@ html, body {
 .masthead {
     flex: 0 0 auto;              /* takes its own height; the photo and the
                                     text below still divide what is left 7:3 */
-    margin-top: 10vh;            /* clear the fixed nav bar */
+    margin-top: 13vh;            /* clear the 10vh nav, plus air */
     padding: 0.1em 1rem 0.15em;
     font-family: var(--font-display);
     font-weight: var(--weight-display);
@@ -113,6 +160,26 @@ body.landing .backgroundimage {
        let the text below simply take its natural height. */
     flex: 1 1 auto;
     min-height: 42vh;
+
+    /* Same window as a gallery tile, on the same column as the mathematics
+       modules. A definite width stops the flex container stretching it, and
+       the auto margins then centre it. */
+    width: var(--measure);
+    margin: 0 auto;
+    border: var(--shell) solid var(--accent);
+    border-radius: var(--radius);
+    padding: var(--reveal);
+
+    /* Paint and clip the photograph to the CONTENT box, so the reveal shows
+       the page ground instead of more photograph. Without these two the image
+       would run underneath the padding and close the gap. */
+    background-origin: content-box;
+    background-clip: content-box;
+
+    /* The clip above leaves the reveal transparent, showing the page ground.
+       An inset shadow of exactly --reveal thickness paints the gap white
+       instead, and it follows the rounded corners automatically. */
+    box-shadow: inset 0 0 0 var(--reveal) var(--reveal-color);
 }
 
 body.landing .content {
@@ -150,28 +217,47 @@ body.landing .content {
     width: 100%;
     height: 10vh;
     display: flex;
-    justify-content: space-evenly; /* evenly distributes links across full width */
+    justify-content: space-between;
     align-items: center;
     text-align: center;
     z-index: 100;
-    background-color: transparent; /* change if you have scrolling effect */
-    transition: background-color 500ms linear;
+    background-color: var(--band);
+    border-bottom: 1px solid var(--rule);
+    transition: background-color var(--speed) var(--ease);
 }
 
-/* Optional: different color when scrolling */
+/* space-evenly gives equal GAPS, not equal COLUMNS. With three labels of
+   different widths that puts "mathematics" a little left of the page centre,
+   so the masthead below it — which is genuinely centred — looks misaligned.
+   Equal-width columns with centred text put the middle label dead centre. */
+.nav-bar .nav-link {
+    flex: 1 1 0;
+    align-self: stretch;     /* full height, so the dividers run the whole
+                                depth of the band and meet the rule below */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-bar .nav-link + .nav-link {
+    border-left: 1px solid var(--rule);
+}
+
+/* app.js adds .scrolling past 5% of the viewport height. The band already has
+   a ground, so this holds it steady rather than flashing to white. */
 .nav-bar.scrolling {
-    background-color: white;
-    transition: background-color 750ms linear;
+    background-color: var(--band);
+    transition: background-color var(--speed) var(--ease);
 }
 
 .nav-bar a {
-    color: black;
+    color: var(--ink);
     text-decoration: none;
     font-family: var(--font-display);
     font-weight: var(--weight-display);
     letter-spacing: 0.04em;
     font-size: var(--size-nav);
-    transition: color 500ms linear;
+    transition: color var(--speed) var(--ease);
 }
 
 .nav-bar a:hover {
@@ -181,7 +267,7 @@ body.landing .content {
 
 .nav-bar a.scrolling {
     color: #6e6e6e !important;
-    transition: color 750ms ease-out;
+    transition: color var(--speed) var(--ease);
 }
 
 
@@ -201,7 +287,7 @@ body.landing .content {
 }
 
 .nav-bar-pending a {
-    transition: color 750ms linear;
+    transition: color var(--speed) var(--ease);
     z-index: 100;
     color: #6e6e6e;
     text-decoration: none;   
@@ -334,7 +420,7 @@ body.landing .content {
 .gapfillphoto {
     display: flex;
     flex-direction: column;
-    height: 5vh;
+    height: 7vh;    /* two of these clear the 10vh nav and leave 4vh of air */
 }
 
 .aboutprojectcontainer {
@@ -352,10 +438,7 @@ body.landing .content {
     flex-direction: column;      /* stack publications vertically */
     text-align: center;
     justify-content: flex-start; /* let content start from top */
-    width: 85%;
-    max-width: 46rem;            /* ~70 characters. The smaller of width and
-                                    max-width wins, so the phone keeps its 85%
-                                    and only wide screens get capped. */
+    width: var(--measure);
     margin: auto;
     height: auto;                /* let content determine height */
 } 
@@ -421,9 +504,10 @@ body.landing .content {
     height: 40px;
     border-radius: 50%;
     text-align: center;
+    background-color: var(--ink);
     box-shadow: 0px 7px 5px rgba(0, 0, 0, 0.5);
     font-size: 22px;             /* adjust icon size */
-    transition: transform 0.5s;
+    transition: transform var(--speed) var(--ease);
 }
 
 .socials ul li a:hover {
@@ -436,11 +520,8 @@ body.landing .content {
     line-height: 1;               /* ensures vertical alignment */
 }
 
-/* Circle background colors */
-.socials ul li:nth-child(1) a { background-color: #4b3832; } /* Instagram */
-.socials ul li:nth-child(3) a { background-color: #4285f4; } /* Google Scholar */
-.socials ul li:nth-child(4) a { background-color: #82f5ca; } /* ResearchGate */
-.socials ul li:nth-child(2) a { background-color: #ff8000; } /* Letterboxd */
+/* Brand colours removed: four saturated hues were fighting the single accent.
+   All four now take --ink, the same colour as the nav labels. */
 
 .gallerytextcontainer {align-items: center;
     display: block;
@@ -471,7 +552,7 @@ img {
     object-fit: contain;
     height: 50%;
     width: 70%;
-    border-radius: 2%;
+    border-radius: var(--radius);
 }
 
 img:hover {
@@ -507,15 +588,14 @@ img:hover {
 #mathematics {
   text-align: center;   /* center h2 headings */
   margin: auto;
-  max-width: 100%;       /* constrain width */
+  max-width: 100%;      /* constrain width */
 }
 
 #mathematics h2 {
   font-family: var(--font-display);
   font-weight: var(--weight-display);
   font-size: var(--size-h2);
-  margin: 1.8em 0 0.5em;  /* a heading belongs closer to what follows it
-                             than to what precedes it */
+  margin: 0 0 0.6em;      /* the module now provides the separation */
   text-align: center;    /* explicitly center headings */
 }
 
@@ -608,6 +688,22 @@ img:hover {
   white-space: nowrap;
   margin-left: auto;             /* push to far right */
   text-align: right;
+}
+
+/* --- lightbox overrides ---------------------------------------------------
+   lightbox.css is a vendor file and gets replaced wholesale when the library
+   is updated, so corrections live here instead. style.css loads after it,
+   which is what lets these win at equal specificity. */
+
+.lb-data .lb-caption {
+  font-family: var(--font-body);
+  font-weight: var(--weight-body);   /* the library asks for 200; Georgia has
+                                        no such weight and silently gives 400 */
+  font-size: var(--size-body);       /* was calc(0.75vw + 0.75vh) — identical
+                                        on a laptop, but no longer tied to
+                                        window height */
+  line-height: 1.35;                 /* 1em clipped descenders on long captions
+                                        that wrap on a phone */
 }
 
 /* --- gallery section --- */
