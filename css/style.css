@@ -2,6 +2,24 @@
    where the .otf happens to be installed locally — everyone else silently
    gets the sans-serif fallback. Path is relative to this file: style.css
    sits in /css/, so ../fonts/ is /fonts/ at the site root. */
+/* Body face, self-hosted alongside Orbita. Subset to Latin, variable across
+   weights 300-500 so --weight-body remains a live choice. */
+@font-face {
+  font-family: 'DM Sans';
+  src: url('../fonts/DMSans-latin.woff2') format('woff2');
+  font-weight: 300 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  src: url('../fonts/DMSans-Italic-latin.woff2') format('woff2');
+  font-weight: 300 500;
+  font-style: italic;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Orbita Traced';
   src: url('../fonts/OrbitaTraced.woff2') format('woff2');
@@ -13,11 +31,12 @@
 :root {
   --font-display: 'Orbita Traced', sans-serif;
 
-  /* PLACEHOLDER SERIF. Georgia ships on effectively every device, so this
-     costs no download and nothing can fail to load. When you pick a real one,
-     change these two together: a webfont with light weights wants 300, but
-     Georgia only has 400 and 700, and asking it for 300 just gets you 400. */
-  --font-body: Georgia, 'Times New Roman', Times, serif;
+  /* DM Sans, loaded from Google Fonts in each page's <head>. The fallbacks
+     are real faces rather than the generic sans, so a failed font request
+     degrades to something reasonable instead of to Arial.
+     DM Sans runs 100-1000, so --weight-body is a genuine choice here: 400 is
+     the setting we picked; 300 is available if it ever reads too heavy. */
+  --font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --weight-body: 400;
 
   --weight-light: 100;   /* the italic caption on the landing image */
@@ -143,63 +162,63 @@ html, body {
 body.landing, html.landing {
     height: 100%;
     margin: 0;
-    /* Was overflow: hidden. With the text now at a readable size the landing
-       content can outgrow a short screen, and hidden would silently clip the
-       contact line off the bottom. auto shows no scrollbar when it fits. */
-    overflow-y: auto;
+    /* No vertical scrolling on this page, ever. The photograph below is the
+       only flexible element, so it absorbs whatever space is left over and
+       the page always measures exactly one screen. */
+    overflow: hidden;
 }
 
 body.landing .backgroundimage {
-    z-index: 0;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    height: 66vh;
-    width: 100%;     /* not 100vw: that includes the scrollbar and causes
-                        a horizontal overflow on desktop */
-    background-image: url(../images/background.jpeg);
+    /* Now just a slot that centres the photograph. It takes whatever vertical
+       space is left over, and the picture fits itself inside. */
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--shell) + var(--reveal));   /* room for the frame rings */
+}
 
-    /* A flex item cannot shrink below its own content, and .content is full of
-       text while this is empty — so at the old 7:3 ratio the text took whatever
-       it needed and this absorbed all the loss. Give the photograph a floor and
-       let the text below simply take its natural height. */
-    flex: 1 1 auto;
-    min-height: 42vh;
+.landing-photo {
+    display: block;
+    /* Both maxima, no width or height: a replaced element shrinks to satisfy
+       whichever binds while keeping its own proportions. So the whole picture
+       is always visible and never distorted, at the largest size that fits. */
+    max-width: var(--measure);
+    max-height: 100%;
+    width: auto;
+    height: auto;
 
-    /* Same window as a gallery tile, on the same column as the mathematics
-       modules. A definite width stops the flex container stretching it, and
-       the auto margins then centre it. */
-    width: var(--measure);
-    margin: 0 auto;
-    border: var(--shell) solid var(--accent);
-    border-radius: var(--radius);
-    padding: var(--reveal);
+    border-radius: max(0px, calc(var(--radius) - var(--shell) - var(--reveal)));
 
-    /* Paint and clip the photograph to the CONTENT box, so the reveal shows
-       the page ground instead of more photograph. Without these two the image
-       would run underneath the padding and close the gap. */
-    background-origin: content-box;
-    background-clip: content-box;
-
-    /* The clip above leaves the reveal transparent, showing the page ground.
-       An inset shadow of exactly --reveal thickness paints the gap white
-       instead, and it follows the rounded corners automatically. */
-    box-shadow: inset 0 0 0 var(--reveal) var(--reveal-color);
+    /* The window as two shadow rings rather than border + padding. Shadows sit
+       outside layout, so the image is still free to size itself — and each
+       ring's corner radius grows with its spread, which keeps the three curves
+       concentric with no arithmetic. */
+    box-shadow:
+        0 0 0 var(--reveal) var(--reveal-color),
+        0 0 0 calc(var(--reveal) + var(--shell)) var(--accent);
 }
 
 body.landing .content {
-    flex: 0 1 auto;
+    flex: 0 0 auto;   /* takes its natural height and keeps it */
 }
 
-.backgroundimage {
-    z-index: 0;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    height: 100%;
-    width: 100%;
-    background-image: url(../images/background.jpeg);
+/* On a short window the fixed parts alone can fill the screen, which would
+   leave the photograph nothing and start clipping the text. Trimming the
+   masthead and the footer buys the picture room back. */
+@media (max-height: 620px) {
+    .masthead {
+        margin-top: 11.5vh;
+        font-size: clamp(1.5rem, 5vw, 2.6rem);
+        padding-bottom: 0;
+    }
+    body.landing .content { padding: 0.4rem; }
+    body.landing .socials { height: 11vh; }
 }
+
+/* The photograph is an <img> now, not a background, so the old
+   .backgroundimage painting rules have gone. */
 
 /*@keyframes animate {
     0%,100%{
@@ -459,7 +478,7 @@ body.landing .content {
     font-weight: var(--weight-body);
     font-size: var(--size-lede);
     width: 100%;
-    color: #6e6e6e;
+    color: var(--ink);   /* same as the nav labels and the social buttons */
 }
 
 /*.linetext {
@@ -715,8 +734,8 @@ img:hover {
 
 .lb-data .lb-caption {
   font-family: var(--font-body);
-  font-weight: var(--weight-body);   /* the library asks for 200; Georgia has
-                                        no such weight and silently gives 400 */
+  font-weight: var(--weight-body);   /* the library asks for 200; we set the
+                                        same weight as the rest of the site */
   font-size: var(--size-body);       /* was calc(0.75vw + 0.75vh) — identical
                                         on a laptop, but no longer tied to
                                         window height */
