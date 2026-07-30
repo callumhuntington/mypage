@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
 <meta name="keywords" content="callumhuntington.com, callum, huntington, callum huntington, graph theory, mathematics, sheffield, naples">
-<meta name="description" content="hello! i am callum huntington">
-<title>callum huntington</title>
+<meta name="description" content="Hello! I am Callum Huntington">
+<title>Callum Huntington</title>
 
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZGGQLFW2KZ"></script>
@@ -31,7 +31,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="css/lightbox.css">
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/style.css?v=14">
 <style>
 /* ── photo grid ── */
 .photo-grid {
@@ -44,24 +44,34 @@
 
 .grid-item {
   position: relative;
-  overflow: hidden;
-  aspect-ratio: 1 / 1;   /* square cells */
-  border-radius: 4px;
+  aspect-ratio: 1 / 1;       /* square cells, surround and reveal included */
+  border: var(--shell) solid var(--accent);
+  border-radius: var(--radius);
+  padding: var(--reveal);
+  background-color: var(--reveal-color);   /* the gap reads white, not ground */
 }
 
 .grid-item a {
   display: block;
   width: 100%;
   height: 100%;
+  position: relative;        /* scopes the caption overlay to the photo,
+                                not to the surround */
+  overflow: hidden;          /* clip here rather than on .grid-item, or the
+                                hover zoom expands across the reveal */
+  /* concentric with the surround: outer radius less the shell and the reveal.
+     max() keeps it valid if --radius is ever set below their sum. */
+  border-radius: max(0px, calc(var(--radius) - var(--shell) - var(--reveal)));
 }
 
 .grid-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 0;          /* the tile clips it; a second radius here would
+                                leave pale corners inside the surround */
   display: block;
-  transition: transform 0.4s ease;
+  transition: transform var(--speed) var(--ease);
 }
 
 .grid-item:hover img {
@@ -77,8 +87,8 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.35s ease;
-  border-radius: 4px;
+  transition: opacity var(--speed) var(--ease);
+  border-radius: 0;
 }
 
 .grid-item:hover .grid-overlay {
@@ -128,93 +138,93 @@
 <div class="gapfillphoto"></div>
 <div class="gapfillphoto"></div>
 
-<div id="gallery" class="gapfill">
-  <h2>gallery</h2>
-</div>
+<!-- Anchor target for the nav link. The heading is gone; the photographs
+     introduce themselves. -->
+<div id="gallery"></div>
 
 <div class="photo-grid">
 
   <div class="grid-item">
-    <a href="./images/syracuse.jpeg" data-lightbox="mygallery" data-title="syracuse, italy (2020)">
-      <img src="./images/syracuse.jpeg" alt="syracuse, italy (2020)">
-      <div class="grid-overlay"><span>syracuse, italy (2020)</span></div>
+    <a href="./images/syracuse.jpeg" data-lightbox="mygallery" data-title="Syracuse, Italy (2020)">
+      <img src="./images/syracuse.jpeg" alt="Syracuse, Italy (2020)">
+      <div class="grid-overlay"><span>Syracuse, Italy (2020)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/parkhill_full.jpeg" data-lightbox="mygallery" data-title="sheffield, united kingdom (2024)">
-      <img src="./images/parkhill_thumb.jpeg" alt="sheffield, united kingdom (2024)">
-      <div class="grid-overlay"><span>sheffield, united kingdom (2024)</span></div>
+    <a href="./images/parkhill_full.jpeg" data-lightbox="mygallery" data-title="Sheffield, United Kingdom (2024)">
+      <img src="./images/parkhill_thumb.jpeg" alt="Sheffield, United Kingdom (2024)">
+      <div class="grid-overlay"><span>Sheffield, United Kingdom (2024)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/belgrade_full.jpeg" data-lightbox="mygallery" data-title="belgrade, serbia (2025)">
-      <img src="./images/belgrade_thumb.jpeg" alt="belgrade, serbia (2025)">
-      <div class="grid-overlay"><span>belgrade, serbia (2025)</span></div>
+    <a href="./images/belgrade_full.jpeg" data-lightbox="mygallery" data-title="Belgrade, Serbia (2025)">
+      <img src="./images/belgrade_thumb.jpeg" alt="Belgrade, Serbia (2025)">
+      <div class="grid-overlay"><span>Belgrade, Serbia (2025)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/bordeaux_full.jpeg" data-lightbox="mygallery" data-title="bordeaux, france (2021)">
-      <img src="./images/bordeaux_thumb.jpeg" alt="bordeaux, france (2021)">
-      <div class="grid-overlay"><span>bordeaux, france (2021)</span></div>
+    <a href="./images/bordeaux_full.jpeg" data-lightbox="mygallery" data-title="Bordeaux, France (2021)">
+      <img src="./images/bordeaux_thumb.jpeg" alt="Bordeaux, France (2021)">
+      <div class="grid-overlay"><span>Bordeaux, France (2021)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/yerevan_full.jpeg" data-lightbox="mygallery" data-title="yerevan, armenia (2026)">
-      <img src="./images/yerevan_thumb.jpeg" alt="yerevan, armenia (2026)">
-      <div class="grid-overlay"><span>yerevan, armenia (2026)</span></div>
+    <a href="./images/yerevan_full.jpeg" data-lightbox="mygallery" data-title="Yerevan, Armenia (2026)">
+      <img src="./images/yerevan_thumb.jpeg" alt="Yerevan, Armenia (2026)">
+      <div class="grid-overlay"><span>Yerevan, Armenia (2026)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/london_full.jpeg" data-lightbox="mygallery" data-title="london, united kingdom (2021)">
-      <img src="./images/london_thumb.jpeg" alt="london, united kingdom (2021)">
-      <div class="grid-overlay"><span>london, united kingdom (2021)</span></div>
+    <a href="./images/london_full.jpeg" data-lightbox="mygallery" data-title="London, United Kingdom (2021)">
+      <img src="./images/london_thumb.jpeg" alt="London, United Kingdom (2021)">
+      <div class="grid-overlay"><span>London, United Kingdom (2021)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/capetown_full.jpeg" data-lightbox="mygallery" data-title="cape town, south africa (2025)">
-      <img src="./images/capetown_thumb.jpeg" alt="cape town, south africa (2025)">
-      <div class="grid-overlay"><span>cape town, south africa (2025)</span></div>
+    <a href="./images/capetown_full.jpeg" data-lightbox="mygallery" data-title="Cape Town, South Africa (2025)">
+      <img src="./images/capetown_thumb.jpeg" alt="Cape Town, South Africa (2025)">
+      <div class="grid-overlay"><span>Cape Town, South Africa (2025)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/matera.jpeg" data-lightbox="mygallery" data-title="matera, italy (2023)">
-      <img src="./images/matera.jpeg" alt="matera, italy (2023)">
-      <div class="grid-overlay"><span>matera, italy (2023)</span></div>
+    <a href="./images/matera.jpeg" data-lightbox="mygallery" data-title="Matera, Italy (2023)">
+      <img src="./images/matera.jpeg" alt="Matera, Italy (2023)">
+      <div class="grid-overlay"><span>Matera, Italy (2023)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/saopaulo_full.jpeg" data-lightbox="mygallery" data-title="são paulo, brazil (2025)">
-      <img src="./images/saopaulo_thumb.jpeg" alt="são paulo, brazil (2025)">
-      <div class="grid-overlay"><span>são paulo, brazil (2025)</span></div>
+    <a href="./images/saopaulo_full.jpeg" data-lightbox="mygallery" data-title="São Paulo, Brazil (2025)">
+      <img src="./images/saopaulo_thumb.jpeg" alt="São Paulo, Brazil (2025)">
+      <div class="grid-overlay"><span>São Paulo, Brazil (2025)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/gaiola.jpeg" data-lightbox="mygallery" data-title="naples, italy (2023)">
-      <img src="./images/gaiola.jpeg" alt="naples, italy (2023)">
-      <div class="grid-overlay"><span>naples, italy (2023)</span></div>
+    <a href="./images/gaiola.jpeg" data-lightbox="mygallery" data-title="Naples, Italy (2023)">
+      <img src="./images/gaiola.jpeg" alt="Naples, Italy (2023)">
+      <div class="grid-overlay"><span>Naples, Italy (2023)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/hollywood.jpeg" data-lightbox="mygallery" data-title="los angeles, united states of america (2019)">
-      <img src="./images/hollywood.jpeg" alt="los angeles, united states of america (2019)">
-      <div class="grid-overlay"><span>los angeles, united states of america (2019)</span></div>
+    <a href="./images/hollywood.jpeg" data-lightbox="mygallery" data-title="Los Angeles, United States of America (2019)">
+      <img src="./images/hollywood.jpeg" alt="Los Angeles, United States of America (2019)">
+      <div class="grid-overlay"><span>Los Angeles, United States of America (2019)</span></div>
     </a>
   </div>
 
   <div class="grid-item">
-    <a href="./images/porto_full.jpeg" data-lightbox="mygallery" data-title="porto, portugal (2022)">
-      <img src="./images/porto_thumb.jpeg" alt="porto, portugal (2022)">
-      <div class="grid-overlay"><span>porto, portugal (2022)</span></div>
+    <a href="./images/porto_full.jpeg" data-lightbox="mygallery" data-title="Porto, Portugal (2022)">
+      <img src="./images/porto_thumb.jpeg" alt="Porto, Portugal (2022)">
+      <div class="grid-overlay"><span>Porto, Portugal (2022)</span></div>
     </a>
   </div>
 
