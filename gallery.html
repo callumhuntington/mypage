@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="css/lightbox.css">
-<link rel="stylesheet" href="css/style.css?v=33">
+<link rel="stylesheet" href="css/style.css?v=35">
 <style>
 /* ── the atlas ──
    Scoped to this page, as the photo grid was. Three new colours; everything
@@ -66,7 +66,14 @@
 }
 
 /* Same construction as a mathematics module — a red shell with a white reveal
-   inside it. The map is a window like everything else on the site. */
+   inside it. The map is a window like everything else on the site.
+
+   The red box spans the full column and the map is centred inside it. An
+   earlier version had the box shrink-wrap the map to close the margins either
+   side; it is not worth it — the frame is 1.94:1 now, so those margins are
+   small, and sizing a box from its own child means reaching for the viewport
+   for the width limit, which then disagrees with a percentage-width parent by
+   exactly the width of the scrollbar. */
 .atlas-map,
 .region-stage {
   border: var(--shell) solid var(--accent);
@@ -76,14 +83,17 @@
 }
 
 /* The map is as large as it can be while still fitting the height left over.
-   min() picks whichever runs out first: on a wide short window the height
-   does, and the spare width shows as blank either side of the map inside the
-   frame; on a narrow window the width does, and those blanks close up.
-   --frame-ar is set from the viewBox by atlas.js, because CSS cannot read it.
+   min() picks whichever runs out first: usually the height, and on a narrow
+   window the width. --frame-ar is set from the viewBox by atlas.js, because
+   CSS cannot read it.
 
    Written as a width rather than a height on purpose: aspect-ratio derives the
    missing dimension only from a definite one, so setting height and letting
-   max-width clamp the width would just squash the drawing. */
+   max-width clamp the width would just squash the drawing.
+
+   min() picks whichever runs out first: usually the height, so the whole map
+   stays on screen; on a short wide window the 100% takes over and the map is
+   limited by the column instead. */
 .map-frame,
 .sheet-frame {
   position: relative;
@@ -286,22 +296,60 @@ main { padding-bottom: var(--atlas-gap); }
   inset: 0;
 }
 
-/* One set of anchors, two layouts. Here they are pinned to the map; below the
-   breakpoint position: static makes --x and --y inert and they fall into a
-   grid instead. The lightbox album is therefore the region's photographs
-   exactly once, in document order, whichever layout is showing. */
-.card {
+/* A pile sits at one pin. Usually it holds a single photograph; where two were
+   taken in the same place it holds both, stacked.
+
+   pointer-events: none on the wrapper, auto on the cards, is what makes the
+   fan below honest — :hover still reaches an ancestor of whatever was hit, so
+   the pile opens when a CARD is under the pointer and not merely when the
+   pointer is inside the pile's bounding box, which with rotated cards is a
+   good deal larger than the cards themselves. */
+.pile {
   position: absolute;
   left: var(--x);
   top: var(--y);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.pile:hover { z-index: 40; }
+
+/* One set of anchors, two layouts. Here they are pinned to the map; below the
+   breakpoint the piles become display: contents and the cards fall into a grid
+   instead. The lightbox album is therefore the region's photographs exactly
+   once, in document order, whichever layout is showing. */
+.card {
+  /* Composed from parts so the fan, the tilt and the hover lift can each be
+     changed without any of them having to restate the others. */
+  --tx: calc(var(--dx, 0) * 1cqw);
+  --ty: calc(var(--dy, 0) * 1cqw);
+  --tr: var(--rot, 0deg);
+  --ts: 1;
+
+  position: absolute;
+  left: 0;
+  top: 0;
   width: calc(var(--card-w, 11.2) * 1cqw);
   z-index: var(--z, 1);
+  pointer-events: auto;
   background: #fff;
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.22);
   text-decoration: none;
-  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  transform: translate(-50%, -50%) translate(var(--tx), var(--ty))
+             rotate(var(--tr)) scale(var(--ts));
   transition: transform var(--speed) var(--ease),
               box-shadow var(--speed) var(--ease);
+}
+
+/* The fan. Hovering anywhere in a pile spreads every card in it, symmetrically
+   about the pile's centre, with the outer ones riding up and tilting further —
+   so the one underneath becomes something you can actually aim at. A pile of
+   one has --fx and --fy equal to its resting offset, so nothing happens. */
+.pile:hover > .card,
+.pile:focus-within > .card {
+  --tx: calc(var(--fx, 0) * 1cqw);
+  --ty: calc(var(--fy, 0) * 1cqw);
+  --tr: calc(var(--rot, 0deg) + var(--frot, 0deg));
 }
 
 .card:hover,
@@ -310,7 +358,7 @@ main { padding-bottom: var(--atlas-gap); }
      stacking order arrives as --z rather than as an inline z-index, which
      would have outranked it. */
   z-index: 40;
-  transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1.14);
+  --ts: 1.14;
   box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
   text-decoration: none;
 }
@@ -555,6 +603,10 @@ main { padding-bottom: var(--atlas-gap); }
      less and would squash or stretch the grid. */
   .sheet-frame { aspect-ratio: auto !important; }
 
+  /* The pile has no job here: the cards are the grid items, so it steps out
+     of the box tree entirely rather than becoming a cell of its own. */
+  .pile { display: contents; }
+
   .card {
     position: static;
     width: auto;
@@ -619,10 +671,10 @@ main { padding-bottom: var(--atlas-gap); }
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 <script src="js/app.js"></script>
 <script src="js/lightbox.js"></script>
-<script src="data/photos.js?v=3"></script>
+<script src="data/photos.js?v=6"></script>
 <script src="js/atlas-data.js?v=2"></script>
-<script src="js/atlas-sheets.js?v=4"></script>
-<script src="js/atlas.js?v=7"></script>
+<script src="js/atlas-sheets.js?v=8"></script>
+<script src="js/atlas.js?v=8"></script>
 <script>
   // Lightbox tuning. disableScrolling is the important one: the overlay is
   // fixed now, so letting the page scroll behind it would be disorienting

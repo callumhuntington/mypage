@@ -24,21 +24,44 @@ import {geoTransverseMercator, geoConicConformal, geoPath, geoBounds} from 'd3-g
 import {REGIONS, SPLIT_SUBUNITS, SUBUNIT_ALIAS} from './regions.mjs';
 
 // ── sheet geometry, in sheet units ───────────────────────────────────────────
-const SHEET_W = 1000, SHEET_H = 720;
-const FIT = [[46, 46], [SHEET_W - 46, SHEET_H - 46]];
+// The sheet is wider than it is deep because the silhouettes are fitted to its
+// HEIGHT. Working through what a card measures on screen:
+//
+//   frame width  = free height x (SHEET_W / SHEET_H)
+//   card on screen = (CARD_W / SHEET_W) x frame width
+//                  = CARD_W x free height / SHEET_H
+//
+// SHEET_W cancels. Widening the sheet therefore costs the map nothing and
+// hands the cards a great deal more sea to sit in — it converts the blank
+// margins inside the red frame into usable room rather than leaving them
+// empty. The ceiling is the frame's aspect ratio: past about 2:1 the frame
+// stops being limited by the window's height and starts being limited by its
+// width, at which point the map does begin to shrink.
+const SHEET_W = 1400, SHEET_H = 720;
+// Inset of the silhouette within the sheet. FIT_Y is the one that matters:
+// every region so far is fitted to its height, so this is what decides how
+// large the map is drawn — and it buys a band of clear white above and below
+// that the cards can use without touching the country.
+const FIT_X = 60, FIT_Y = 104;
+const FIT = [[FIT_X, FIT_Y], [SHEET_W - FIT_X, SHEET_H - FIT_Y]];
 
-const CARD_W = 112, CARD_H = 142;   // the polaroid, surround and caption
-const PAD    = 8;                   // breathing room between two cards
-const LEAD   = 92;                  // pin to card centre, when unobstructed
-const LEAD_MAX = 270;               // how far a card may ever drift from its pin
+const CARD_W = 150, CARD_H = 190;   // the polaroid, surround and caption
+const PAD    = 7;                   // breathing room between two cards
+const LEAD   = 110;                 // pin to card centre, when unobstructed
+const LEAD_MAX = 460;               // how far a card may ever drift from its pin
 
-// Cards shrink as a region fills up. Nine of them on Yugoslavia sit
-// comfortably at full size; twenty-two on Italy at that size want 63% of the
-// sheet and cannot be placed at all. Rather than pick a size per region by
-// hand, aim for a share of the sheet and solve for the scale — so a region
-// that grows from four photographs to forty adjusts itself.
-const TARGET_FILL = 0.38;
-const MIN_SCALE = 0.60;
+// Cards shrink as a region fills up. Rather than pick a size per region by
+// hand, aim for a share of the room actually available and solve for the
+// scale — so a region that grows from four photographs to forty adjusts
+// itself.
+//
+// The share is of the SEA, not of the whole sheet. Two regions with the same
+// number of photographs do not have the same amount of room: Italy is 12%
+// land and the Balkans 31%, so measuring against the sheet gave Yugoslavia
+// cards it had nowhere to put and left them sitting on the country.
+const TARGET_FILL = 0.50;
+const MIN_SCALE = 0.55;
+const MAX_SCALE = 1.0;
 
 // How hard a card is pushed off the silhouette, per unit of land it covers,
 // relative to the cost of overlapping another card. The point of a region
@@ -49,8 +72,14 @@ const MIN_SCALE = 0.60;
 // clears easily; the contiguous United States is 43% of its own and simply
 // cannot, so there the term quietly becomes a preference for the emptiest spot
 // rather than an impossible demand.
-const LAND_WEIGHT = 0.85;
+const LAND_WEIGHT = 2.2;
 const GRID = 4;   // sheet units per cell of the occupancy raster
+
+// A keep-out band around the coastline, in sheet units. Land avoidance alone
+// let a card sit flush against the coast, where it still buried the pins and
+// strings just inland of it. Growing the forbidden region past the shore
+// pushes the cards clear of the map rather than merely off it.
+const COAST_MARGIN = 34;
 const MAX_TILT = 4.5;               // degrees; hand-placed, not machine-placed
 const STACK_DX = 8, STACK_DY = -7;  // offset of each further card in a pile
 
@@ -190,7 +219,7 @@ function sink(minArea) {
  * Italy sheet, Switzerland and Austria are as empty as the Adriatic, so an
  * inland card like Milan's only has to step off the peninsula, not sail to the
  * Ligurian coast. */
-function landField(pathD) {
+function landField(pathD, margin) {
   const GW = Math.ceil(SHEET_W / GRID), GH = Math.ceil(SHEET_H / GRID);
   const rings = pathD.split('M').slice(1).map(sub =>
     sub.replace(/Z$/, '').split('L').map(p => p.split(',').map(Number)));
@@ -212,6 +241,32 @@ function landField(pathD) {
       const to = Math.min(GW - 1, Math.floor(xs[i + 1] / GRID - 0.5));
       for (let gx = from; gx <= to; gx++) cell[gy * GW + gx] = 1;
     }
+  }
+
+  // Grow the land outwards by `margin`. Done as two one-dimensional passes
+  // rather than a circular kernel: it costs O(n) instead of O(n*r^2) and the
+  // square corners it leaves are of no consequence at this resolution.
+  const r = Math.round((margin || 0) / GRID);
+  if (r > 0) {
+    const tmp = new Uint8Array(GW * GH);
+    for (let gy = 0; gy < GH; gy++)
+      for (let gx = 0; gx < GW; gx++) {
+        let v = 0;
+        for (let k = -r; k <= r && !v; k++) {
+          const x = gx + k;
+          if (x >= 0 && x < GW && cell[gy * GW + x]) v = 1;
+        }
+        tmp[gy * GW + gx] = v;
+      }
+    for (let gy = 0; gy < GH; gy++)
+      for (let gx = 0; gx < GW; gx++) {
+        let v = 0;
+        for (let k = -r; k <= r && !v; k++) {
+          const y = gy + k;
+          if (y >= 0 && y < GH && tmp[y * GW + gx]) v = 1;
+        }
+        cell[gy * GW + gx] = v;
+      }
   }
 
   // summed-area table, one row and column of zeroes at the top and left
@@ -280,11 +335,12 @@ const boxOf = scale => ({
   h: CARD_H * scale * Math.cos(rad) + CARD_W * scale * Math.sin(rad) + PAD,
 });
 
-function scaleFor(n) {
+function scaleFor(n, seaFraction) {
   if (!n) return 1;
   const full = boxOf(1);
-  const s = Math.sqrt(TARGET_FILL * SHEET_W * SHEET_H / (n * full.w * full.h));
-  return Math.max(MIN_SCALE, Math.min(1, Math.round(s * 100) / 100));
+  const sea = SHEET_W * SHEET_H * seaFraction;
+  const s = Math.sqrt(TARGET_FILL * sea / (n * full.w * full.h));
+  return Math.max(MIN_SCALE, Math.min(MAX_SCALE, Math.round(s * 100) / 100));
 }
 
 let BOX = boxOf(1);   // set per sheet before placing
@@ -320,6 +376,14 @@ function place(groups, scale, land) {
     const a = g.fix.angle * Math.PI / 180;
     g.card = [g.pin[0] + Math.cos(a) * g.fix.lead,
               g.pin[1] + Math.sin(a) * g.fix.lead];
+    // Held still afterwards, but not allowed off the frame: a card hanging
+    // over the edge is cut in half on screen, which is worse than one nudged
+    // a few units from where it was asked to be. Reported below when it
+    // happens, so the override can be corrected rather than silently ignored.
+    const bx = Math.min(SHEET_W - BOX.w / 2, Math.max(BOX.w / 2, g.card[0]));
+    const by = Math.min(SHEET_H - BOX.h / 2, Math.max(BOX.h / 2, g.card[1]));
+    if (bx !== g.card[0] || by !== g.card[1]) g.nudged = true;
+    g.card = [bx, by];
     placed.push(g);
   }
   for (const g of groups) {
@@ -363,11 +427,34 @@ function place(groups, scale, land) {
         // A fixed card does not yield, so the free one absorbs the whole push
         const wa = A.fix ? 0 : (B.fix ? 1 : 0.5);
         const wb = B.fix ? 0 : (A.fix ? 1 : 0.5);
-        if (ox < oy) {
-          const s = (ox + 1) * (dx < 0 ? -1 : 1);
+
+        // Prefer the shallower axis, but only if there is somewhere to go on
+        // it. Pushing along the shallower axis unconditionally could drive a
+        // card into the edge of the sheet, where the bounds clamp put it back
+        // exactly where it started — a standoff that never resolved, and the
+        // reason a card was left sitting on top of a hand-placed one.
+        //
+        // A always moves AWAY from B, so A's direction is the opposite of the
+        // sign of (B - A), and B's is the same as it. Getting that backwards
+        // is what made the first version of this check useless.
+        const room = axis => {
+          const d = (axis ? dy : dx) < 0 ? 1 : -1;      // A's direction
+          const lo = (axis ? BOX.h : BOX.w) / 2;
+          const hi = (axis ? SHEET_H : SHEET_W) - lo;
+          const ra = wa ? (d > 0 ? hi - a[axis] : a[axis] - lo) : Infinity;
+          const rb = wb ? (d > 0 ? b[axis] - lo : hi - b[axis]) : Infinity;
+          return Math.min(ra, rb);
+        };
+
+        const needX = ox + 1, needY = oy + 1;
+        const canX = room(0) >= needX, canY = room(1) >= needY;
+        const useX = canX && (!canY || ox < oy);
+
+        if (useX || !canY) {
+          const s = needX * (dx < 0 ? -1 : 1);
           a[0] -= s * wa; b[0] += s * wb;
         } else {
-          const s = (oy + 1) * (dy < 0 ? -1 : 1);
+          const s = needY * (dy < 0 ? -1 : 1);
           a[1] -= s * wa; b[1] += s * wb;
         }
         moved++;
@@ -381,6 +468,15 @@ function place(groups, scale, land) {
     for (const g of groups) {
       if (g.fix) continue;
       if (!land.under(g.card, BOX.w, BOX.h)) continue;
+      // Separation first, land second. A card that is currently overlapping
+      // another one stops sailing until it is clear: two photographs on top of
+      // each other is a worse failure than one photograph on top of Wales, and
+      // letting both forces run at once produced a standoff where a free card
+      // was pinned against a hand-placed one it could not push.
+      let clashes = false;
+      for (const o of groups)
+        if (o !== g && overlap(g.card, o.card) > 0) { clashes = true; break; }
+      if (clashes) continue;
       const d = GRID * 2;
       const gx = land.under([g.card[0] + d, g.card[1]], BOX.w, BOX.h)
                - land.under([g.card[0] - d, g.card[1]], BOX.w, BOX.h);
@@ -394,16 +490,21 @@ function place(groups, scale, land) {
       }
     }
 
+    // Order matters here. Reining in a long string can push a card back off
+    // the edge, so the string limit is applied FIRST and the sheet bounds
+    // last — the bounds are the hard constraint, the string length a
+    // preference. Doing it the other way round left a card hanging over the
+    // frame on the British Isles sheet.
     for (const g of groups) {
       if (g.fix) continue;
-      g.card[0] = Math.min(SHEET_W - BOX.w / 2, Math.max(BOX.w / 2, g.card[0]));
-      g.card[1] = Math.min(SHEET_H - BOX.h / 2, Math.max(BOX.h / 2, g.card[1]));
       const dx = g.card[0] - g.pin[0], dy = g.card[1] - g.pin[1];
       const d = Math.hypot(dx, dy);
       if (d > LEAD_MAX) {
         g.card[0] = g.pin[0] + dx / d * LEAD_MAX;
         g.card[1] = g.pin[1] + dy / d * LEAD_MAX;
       }
+      g.card[0] = Math.min(SHEET_W - BOX.w / 2, Math.max(BOX.w / 2, g.card[0]));
+      g.card[1] = Math.min(SHEET_H - BOX.h / 2, Math.max(BOX.h / 2, g.card[1]));
     }
     if (!moved) break;
   }
@@ -476,10 +577,16 @@ for (const key of Object.keys(REGIONS)) {
     index.get(p.group).ids.push(p.id);
   }
 
-  const scale = scaleFor(groups.length);
+  // Two fields. `keepout` is the land grown by COAST_MARGIN and is what the
+  // solver works against, both for sizing the cards and for pushing them
+  // away. `land` is the true silhouette, used only for reporting, so the
+  // numbers below say what is actually covered rather than what the solver
+  // was avoiding.
+  const keepout = landField(path, COAST_MARGIN);
+  const land = landField(path, 0);
+  const scale = scaleFor(groups.length, 1 - keepout.coverage);
   BOX = boxOf(scale);
-  const land = landField(path);
-  place(groups, scale, land);
+  place(groups, scale, keepout);
 
   const cards = {};
   for (const g of groups) {
@@ -513,25 +620,36 @@ for (const key of Object.keys(REGIONS)) {
     console.log(`  cards at ${(scale * 100).toFixed(0)}% ` +
                 `(${(CARD_W * scale).toFixed(0)}×${(CARD_H * scale).toFixed(0)}), ` +
                 `filling ${(100 * cardArea / (SHEET_W * SHEET_H)).toFixed(0)}% of the sheet`);
-    console.log(`  silhouette covers ${(100 * land.coverage).toFixed(0)}% of the sheet; ` +
+    console.log(`  silhouette ${(100 * land.coverage).toFixed(0)}% of the sheet, ` +
+                `keep-out ${(100 * keepout.coverage).toFixed(0)}%; ` +
                 `cards sit on ${(100 * onLand / cardArea).toFixed(1)}% of their own area ` +
                 `(${groups.filter(g => land.under(g.card, BOX.w, BOX.h) === 0).length}` +
                 `/${groups.length} completely clear)`);
   }
+  // Measured on the CARDS, not on the padded boxes the solver works with.
+  // Two cards whose padding just touches are not overlapping, and reporting
+  // them as a failure would make the check cry wolf.
+  const cw = CARD_W * scale, ch = CARD_H * scale;
+  const realOverlap = (a, b) => Math.max(0, cw - Math.abs(a[0] - b[0])) *
+                                Math.max(0, ch - Math.abs(a[1] - b[1]));
   let worst = 0, off = 0, far = 0;
   for (let i = 0; i < groups.length; i++) {
     for (let j = i + 1; j < groups.length; j++)
-      worst = Math.max(worst, overlap(groups[i].card, groups[j].card));
-    if (outOfBounds(groups[i].card) > 0) off++;
+      worst = Math.max(worst, realOverlap(groups[i].card, groups[j].card));
+    // A tenth of a unit, not zero: the coordinates are rounded to 1dp on the
+    // way out, so a card clamped exactly to the edge reports a hair of
+    // overflow that is neither real nor visible.
+    if (outOfBounds(groups[i].card) > 0.5) off++;
     const d = Math.hypot(groups[i].card[0] - groups[i].pin[0],
                          groups[i].card[1] - groups[i].pin[1]);
-    if (d > LEAD_MAX + 0.5) far++;
+    if (d > LEAD_MAX + 1) far++;
   }
   for (const g of groups) {
     const d = Math.hypot(g.card[0] - g.pin[0], g.card[1] - g.pin[1]);
     console.log(`   ${g.key.padEnd(10)} pin ${String(g.pin).padEnd(14)}` +
                 ` card ${String(g.card).padEnd(14)} leader ${d.toFixed(0)}` +
-                (g.ids.length > 1 ? `   stack of ${g.ids.length}` : ''));
+                (g.ids.length > 1 ? `   stack of ${g.ids.length}` : '') +
+                (g.nudged ? '   ← override pulled back onto the sheet' : ''));
   }
   console.log(`  overlap ${worst.toFixed(1)}px²   off-sheet ${off}   over-long leaders ${far}`);
   if (worst > 0.5 || off || far) {

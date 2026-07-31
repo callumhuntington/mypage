@@ -36,11 +36,19 @@ export const REGIONS = {
   southerncone: {label: 'southern cone',
                  countries: ['Argentina', 'Brazil', 'Uruguay'],
                  clip: [-76, -30, -56, 6],
-                 sheetClip: [-64, -43, -37, -20]},         // the Plata + RS
+                 sheetClip: [-66, -41, -38, -19]},        // the Plata, RS and
+                                                          // São Paulo, with a
+                                                          // margin all round
 
   britishisles: {label: 'british isles',
                  countries: ['United Kingdom', 'Ireland'],
-                 clip: [-11, 2, 49, 61]},
+                 clip: [-11, 2, 49, 61],
+                 // Orkney and Shetland are trimmed from the SHEET only — they
+                 // reach 60.8°N against Dunnet Head's 58.7°N, so two degrees
+                 // of empty North Sea were setting the frame's height for a
+                 // handful of islands with nothing on them. They stay on the
+                 // world map, where they cost nothing.
+                 sheetClip: [-11, 2, 49, 58.72]},
 
   iberia:       {label: 'iberia',
                  countries: ['Spain', 'Portugal'],
