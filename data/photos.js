@@ -41,13 +41,18 @@ window.PHOTOS = [
 
   {id: 'koper',     place: 'Koper',     sub: 'Slovenia',               year: 2025,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'koper',
-   lat: 45.5480, lon: 13.7302, card: {angle: 104, lead: 130}},
+   lat: 45.5480, lon: 13.7302},
 
   {id: 'zagreb',    place: 'Zagreb',    sub: 'Croatia',                year: 2024,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'zagreb',
-   lat: 45.8131, lon: 15.9775, card: {angle: -28, lead: 140}},
+   lat: 45.8131, lon: 15.9775},
 
-  // Belgrade and Genex share a group, so they share a pin and stack.
+  {id: 'subotica',  place: 'Subotica',  sub: 'Serbia',                 year: 2025,
+   region: 'yugoslavia', dir: 'yugoslavia', group: 'subotica',
+   lat: 46.1000, lon: 19.6650},
+
+  // Belgrade, Genex and the Blue Train share a group, so they share one pin
+  // and stack into a pile of three.
   {id: 'belgrade',  place: 'Belgrade',  sub: 'Serbia',                 year: 2025,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'belgrade',
    lat: 44.8176, lon: 20.4633},
@@ -55,6 +60,10 @@ window.PHOTOS = [
   {id: 'genex',     place: 'Genex Tower', sub: 'Serbia',               year: 2026,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'belgrade',
    lat: 44.8180, lon: 20.4006},
+
+  {id: 'titostrain', place: "Tito's Blue Train", sub: 'Serbia',        year: 2026,
+   region: 'yugoslavia', dir: 'yugoslavia', group: 'belgrade',
+   lat: 44.7719, lon: 20.4472},
 
   {id: 'uzice',     place: 'Užice',     sub: 'Serbia',                 year: 2026,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'uzice',
@@ -64,13 +73,17 @@ window.PHOTOS = [
    region: 'yugoslavia', dir: 'yugoslavia', group: 'sarajevo',
    lat: 43.8563, lon: 18.4131},
 
+  {id: 'zabljak',   place: 'Žabljak',   sub: 'Montenegro',             year: 2026,
+   region: 'yugoslavia', dir: 'yugoslavia', group: 'zabljak',
+   lat: 43.1550, lon: 19.1233},
+
   {id: 'dubrovnik', place: 'Dubrovnik', sub: 'Croatia',                year: 2026,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'dubrovnik',
-   lat: 42.6507, lon: 18.0944, card: {angle: 152, lead: 132}},
+   lat: 42.6507, lon: 18.0944},
 
   {id: 'kotor',     place: 'Kotor',     sub: 'Montenegro',             year: 2026,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'kotor',
-   lat: 42.4247, lon: 18.7712, card: {angle: -52, lead: 145}},
+   lat: 42.4247, lon: 18.7712},
 
   {id: 'skopje',    place: 'Skopje',    sub: 'N. Macedonia',        year: 2026,
    region: 'yugoslavia', dir: 'yugoslavia', group: 'skopje',
@@ -104,11 +117,11 @@ window.PHOTOS = [
   {id: 'genoa',        place: 'Genoa',         sub: 'Liguria', year: 2019,
    region: 'italy', dir: 'italy', group: 'genoa',        lat: 44.4056, lon:  8.9463},
 
-  {id: 'portofino',    place: 'Portofino',     sub: 'Liguria', year: 2019,
-   region: 'italy', dir: 'italy', group: 'portofino',    lat: 44.3033, lon:  9.2097},
-
   {id: 'bologna',      place: 'Bologna',       sub: 'Emilia-Romagna', year: 2022,
    region: 'italy', dir: 'italy', group: 'bologna',      lat: 44.4949, lon: 11.3426},
+
+  {id: 'portofino',    place: 'Portofino',     sub: 'Liguria', year: 2019,
+   region: 'italy', dir: 'italy', group: 'portofino',    lat: 44.3033, lon:  9.2097},
 
   {id: 'pisa',         place: 'Pisa',          sub: 'Tuscany', year: 2022,
    region: 'italy', dir: 'italy', group: 'pisa',         lat: 43.7228, lon: 10.4017},
@@ -157,5 +170,141 @@ window.PHOTOS = [
 
   {id: 'syracuse',     place: 'Syracuse',      sub: 'Sicily', year: 2020,
    region: 'italy', dir: 'italy', group: 'syracuse',     lat: 37.0755, lon: 15.2866},
+
+  /* ── southern cone ─────────────────────────────────────────────────────── */
+  /* North to south. The sheet spans three countries, so `sub` is the country
+     here rather than the state — the same rule as Yugoslavia. Swap in São
+     Paulo and Rio Grande do Sul if you would rather it read like Italy.
+
+     Two pairs share a pin: MASP is 3km from the centre of São Paulo and La
+     Bombonera 4km from the middle of Buenos Aires, which are 2px and 3px at
+     sheet scale. */
+
+  {id: 'saopaulo',    place: 'São Paulo',     sub: 'Brazil',    year: 2026,
+   region: 'southerncone', dir: 'southerncone', group: 'saopaulo',
+   lat: -23.5505, lon: -46.6333},
+
+  // The Museu de Arte de São Paulo, pinned at Avenida Paulista rather than at
+  // the city centre — which is why it stacks rather than standing alone.
+  {id: 'masp',        place: 'MASP',          sub: 'Brazil',    year: 2026,
+   region: 'southerncone', dir: 'southerncone', group: 'saopaulo',
+   lat: -23.5614, lon: -46.6559},
+
+  {id: 'gramado',     place: 'Gramado',       sub: 'Brazil',    year: 2026,
+   region: 'southerncone', dir: 'southerncone', group: 'gramado',
+   lat: -29.3747, lon: -50.8767},
+
+  {id: 'portoalegre', place: 'Porto Alegre',  sub: 'Brazil',    year: 2026,
+   region: 'southerncone', dir: 'southerncone', group: 'portoalegre',
+   lat: -30.0346, lon: -51.2177},
+
+  {id: 'buenosaires', place: 'Buenos Aires',  sub: 'Argentina', year: 2026,
+   region: 'southerncone', dir: 'southerncone', group: 'buenosaires',
+   lat: -34.6037, lon: -58.3816},
+
+  {id: 'labombonera', place: 'La Bombonera',  sub: 'Argentina', year: 2026,
+   region: 'southerncone', dir: 'southerncone', group: 'buenosaires',
+   lat: -34.6356, lon: -58.3648},
+
+  /* ── british isles ─────────────────────────────────────────────────────── */
+  /* Roughly north to south, Ireland after Britain. The sheet spans five
+     countries, so `sub` is the country — England, Scotland, Wales, N. Ireland,
+     Ireland — on the same rule as Yugoslavia and the Southern Cone.
+
+     Four Sheffield frames share one group and therefore one pin. Bradfield is
+     the arguable one: it is a village 13km north-west of the centre, which is
+     about 6px at sheet scale, so it could not stand alone without the solver
+     shoving it somewhere it does not belong. It is inside the City of
+     Sheffield, so grouping it is honest as well as convenient — but give it
+     `group: 'bradfield'` if you would rather it were its own place. */
+
+  {id: 'edinburgh',            place: 'Edinburgh',    sub: 'Scotland',    year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'edinburgh',
+   lat: 55.9533, lon: -3.1883},
+
+  {id: 'glasgow',              place: 'Glasgow',      sub: 'Scotland',    year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'glasgow',
+   lat: 55.8642, lon: -4.2518},
+
+  {id: 'staithes',             place: 'Staithes',     sub: 'England',     year: 2024,
+   region: 'britishisles', dir: 'britishisles', group: 'staithes',
+   lat: 54.5586, lon: -0.7889},
+
+  {id: 'scarborough',          place: 'Scarborough',  sub: 'England',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'scarborough',
+   lat: 54.2830, lon: -0.3993},
+
+  {id: 'knaresborough',        place: 'Knaresborough', sub: 'England',    year: 2024,
+   region: 'britishisles', dir: 'britishisles', group: 'knaresborough',
+   lat: 54.0083, lon: -1.4670},
+
+  {id: 'york',                 place: 'York',         sub: 'England',     year: 2024,
+   region: 'britishisles', dir: 'britishisles', group: 'york',
+   lat: 53.9600, lon: -1.0873},
+
+  {id: 'topwithins',           place: 'Top Withens',  sub: 'England',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'topwithins',
+   lat: 53.8214, lon: -2.0330},
+
+  {id: 'leeds',                place: 'Leeds',        sub: 'England',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'leeds',
+   lat: 53.8008, lon: -1.5491},
+
+  // The four Sheffield frames. Park Hill first, so it is the card on top.
+  {id: 'sheffieldparkhill',    place: 'Park Hill',    sub: 'England',     year: 2024,
+   region: 'britishisles', dir: 'britishisles', group: 'sheffield',
+   lat: 53.3800, lon: -1.4600},
+
+  {id: 'sheffieldbramalllane', place: 'Bramall Lane', sub: 'England',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'sheffield',
+   lat: 53.3703, lon: -1.4709},
+
+  {id: 'sheffieldthegrapes',   place: 'The Grapes',   sub: 'England',     year: 2023,
+   region: 'britishisles', dir: 'britishisles', group: 'sheffield',
+   lat: 53.3805, lon: -1.4720},
+
+  {id: 'sheffieldbradfield',   place: 'Bradfield',    sub: 'England',     year: 2021,
+   region: 'britishisles', dir: 'britishisles', group: 'sheffield',
+   lat: 53.4200, lon: -1.6100},
+
+  {id: 'ladybower',            place: 'Ladybower',    sub: 'England',     year: 2019,
+   region: 'britishisles', dir: 'britishisles', group: 'ladybower',
+   lat: 53.3700, lon: -1.7500},
+
+  {id: 'bakewell',             place: 'Bakewell',     sub: 'England',     year: 2023,
+   region: 'britishisles', dir: 'britishisles', group: 'bakewell',
+   lat: 53.2137, lon: -1.6752},
+
+  {id: 'nottingham',           place: 'Nottingham',   sub: 'England',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'nottingham',
+   lat: 52.9548, lon: -1.1581},
+
+  {id: 'birmingham',           place: 'Birmingham',   sub: 'England',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'birmingham',
+   lat: 52.4862, lon: -1.8904},
+
+  {id: 'cardiff',              place: 'Cardiff',      sub: 'Wales',       year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'cardiff',
+   lat: 51.4816, lon: -3.1791},
+
+  {id: 'london',               place: 'London',       sub: 'England',     year: 2021,
+   region: 'britishisles', dir: 'britishisles', group: 'london',
+   lat: 51.5074, lon: -0.1278},
+
+  {id: 'london2',              place: 'London',       sub: 'England',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'london',
+   lat: 51.5074, lon: -0.1278},
+
+  {id: 'belfast',              place: 'Belfast',      sub: 'N. Ireland',  year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'belfast',
+   lat: 54.5973, lon: -5.9301},
+
+  {id: 'dublin',               place: 'Dublin',       sub: 'Ireland',     year: 2023,
+   region: 'britishisles', dir: 'britishisles', group: 'dublin',
+   lat: 53.3498, lon: -6.2603},
+
+  {id: 'cork',                 place: 'Cork',         sub: 'Ireland',     year: 2022,
+   region: 'britishisles', dir: 'britishisles', group: 'cork',
+   lat: 51.8985, lon: -8.4756},
 
 ];

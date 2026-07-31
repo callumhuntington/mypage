@@ -186,55 +186,101 @@
     var cards = document.createElement('div');
     cards.className = 'cards';
 
-    photos.forEach(function (p) {
-      var pos = sheet && sheet.cards[p.id];
-      var a = document.createElement('a');
-      a.className = 'card';
+    // Photographs are laid out pile by pile rather than one flat list, so that
+    // hovering anywhere in a pile can fan it open in CSS alone. A pile of one
+    // is still a pile — same structure everywhere, no special case.
+    //
+    // One consequence: photographs sharing a group become adjacent in the
+    // lightbox album even if they are apart in photos.js. That seems right —
+    // two frames of the same place should sit together in the sequence.
+    var order = [];
+    if (sheet) {
+      sheet.groups.forEach(function (grp) {
+        order.push(grp.ids.map(function (id) {
+          return photos.filter(function (p) { return p.id === id; })[0];
+        }).filter(Boolean));
+      });
+    } else {
+      order = photos.map(function (p) { return [p]; });
+    }
+
+    var u2c = sheet ? 100 / sheet.w : 0;   // sheet units -> % of frame width
+    var SPREAD = 0.62;   // of a card's width, per step out from the middle
+    var ARC = 0.12;      // how much the outer cards ride up
+    var TILT = 7;        // extra degrees per step, so it reads as a hand
+
+    order.forEach(function (pile, pi) {
+      var grp = sheet && sheet.groups[pi];
+      var box = document.createElement('div');
+      box.className = 'pile';
+      if (grp) {
+        box.style.setProperty('--x', (grp.card[0] / sheet.w * 100) + '%');
+        box.style.setProperty('--y', (grp.card[1] / sheet.h * 100) + '%');
+      }
+
+      var n = pile.length;
+      pile.forEach(function (p, i) {
+        var pos = sheet && sheet.cards[p.id];
+        var a = document.createElement('a');
+        a.className = 'card';
       a.href = 'images/' + p.dir + '/' + p.id + '_full.jpeg';
       a.setAttribute('data-lightbox', 'region-' + key);
       a.setAttribute('data-title', caption(p));
-      if (pos) {
-        a.style.setProperty('--x', (pos.x / sheet.w * 100) + '%');
-        a.style.setProperty('--y', (pos.y / sheet.h * 100) + '%');
-        a.style.setProperty('--rot', pos.rot + 'deg');
-        // as a custom property, not z-index directly: an inline z-index would
-        // outrank the :hover rule that lifts a card out of its pile
-        a.style.setProperty('--z', pos.z);
-      }
+        if (pos && grp) {
+          // Resting offset from the middle of the pile: the small hand-placed
+          // stagger the build gives each card in a stack.
+          a.style.setProperty('--dx', (pos.x - grp.card[0]) * u2c);
+          a.style.setProperty('--dy', (pos.y - grp.card[1]) * u2c);
+          a.style.setProperty('--rot', pos.rot + 'deg');
+          // as a custom property, not z-index directly: an inline z-index would
+          // outrank the :hover rule that lifts a card out of its pile
+          a.style.setProperty('--z', pos.z);
 
-      var ph = document.createElement('span');
-      ph.className = 'card-photo';
-      var img = document.createElement('img');
-      img.src = 'images/' + p.dir + '/' + p.id + '_thumb.jpeg';
-      img.alt = caption(p);
-      img.loading = 'lazy';
-      ph.appendChild(img);
+          // Fanned offset. Cards spread symmetrically about the pile's centre
+          // rather than all one way, so an opened pile stays roughly where it
+          // was and is less likely to swing off the edge of the sheet.
+          var step = i - (n - 1) / 2;
+          a.style.setProperty('--fx', step * sheet.cardW * SPREAD);
+          a.style.setProperty('--fy', -Math.abs(step) * sheet.cardW * SPREAD * ARC);
+          a.style.setProperty('--frot', (step * TILT) + 'deg');
+        }
 
-      var cap = document.createElement('span');
-      cap.className = 'card-cap';
-      var l1 = document.createElement('b');
-      l1.textContent = p.place;
-      var l2 = document.createElement('i');
-      l2.textContent = p.sub + (p.year ? ' (' + p.year + ')' : '');
-      cap.appendChild(l1);
-      cap.appendChild(l2);
+        var ph = document.createElement('span');
+        ph.className = 'card-photo';
+        var img = document.createElement('img');
+        img.src = 'images/' + p.dir + '/' + p.id + '_thumb.jpeg';
+        img.alt = caption(p);
+        img.loading = 'lazy';
+        ph.appendChild(img);
 
-      a.appendChild(ph);
-      a.appendChild(cap);
+        var cap = document.createElement('span');
+        cap.className = 'card-cap';
+        var l1 = document.createElement('b');
+        l1.textContent = p.place;
+        var l2 = document.createElement('i');
+        l2.textContent = p.sub + (p.year ? ' (' + p.year + ')' : '');
+        cap.appendChild(l1);
+        cap.appendChild(l2);
 
-      // Hovering a photograph flushes its own string and pin white. With a
-      // card sitting up to 145 units from its dot, this is what tells you
-      // which dot it belongs to.
-      var mark = marks[groupOf[p.id]];
-      if (mark) {
-        var lit = function (on) { mark.classList.toggle('is-lit', on); };
-        a.addEventListener('mouseenter', function () { lit(true); });
-        a.addEventListener('mouseleave', function () { lit(false); });
-        a.addEventListener('focus', function () { lit(true); });
-        a.addEventListener('blur', function () { lit(false); });
-      }
+        a.appendChild(ph);
+        a.appendChild(cap);
 
-      cards.appendChild(a);
+        // Hovering a photograph flushes its own string and pin white. With a
+        // card sitting up to 270 units from its dot, this is what tells you
+        // which dot it belongs to.
+        var mark = marks[groupOf[p.id]];
+        if (mark) {
+          var lit = function (on) { mark.classList.toggle('is-lit', on); };
+          a.addEventListener('mouseenter', function () { lit(true); });
+          a.addEventListener('mouseleave', function () { lit(false); });
+          a.addEventListener('focus', function () { lit(true); });
+          a.addEventListener('blur', function () { lit(false); });
+        }
+
+        box.appendChild(a);
+      });
+
+      cards.appendChild(box);
     });
 
     if (frame) {
