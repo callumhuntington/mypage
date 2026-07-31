@@ -251,7 +251,7 @@ window.PHOTOS = [
    lat: 53.8008, lon: -1.5491},
 
   // The four Sheffield frames. Park Hill first, so it is the card on top.
-  {id: 'sheffieldparkhill',    place: 'Park Hill',    sub: 'England',     year: 2024,
+  {id: 'sheffieldparkhill',    place: 'Sheffield',    sub: 'England',     year: 2024,
    region: 'britishisles', dir: 'britishisles', group: 'sheffield',
    lat: 53.3800, lon: -1.4600},
 
