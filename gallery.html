@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="css/lightbox.css">
-<link rel="stylesheet" href="css/style.css?v=32">
+<link rel="stylesheet" href="css/style.css?v=33">
 <style>
 /* ── the atlas ──
    Scoped to this page, as the photo grid was. Three new colours; everything
@@ -510,9 +510,25 @@ main { padding-bottom: var(--atlas-gap); }
   .sheet-frame,
   .map-frame { width: 100%; }
 
-  .region-view { display: block; }
-  .region-title { text-align: left; margin: 1rem 0 0.3rem; }
-  .region-note { margin-bottom: 1.1rem; white-space: normal; }
+  /* The head stays on one row here too. The tracks change from 1fr auto 1fr
+     to auto 1fr auto: the wide layout keeps the name optically centred on the
+     page by giving the outer columns equal width, but on a phone that
+     symmetry costs more room than there is. Letting the outer two size to
+     their contents hands the difference to the name. */
+  .region-view {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 0.7rem;
+  }
+
+  /* --size-h2 bottoms out at 1.8rem, which is about 270px of Orbita for
+     "former yugoslavia" — most of a phone's width before the other two
+     have had any. */
+  .region-title {
+    font-size: clamp(1rem, 4.6vw, 1.8rem);
+    margin: 0.6rem 0 var(--atlas-gap);
+  }
+
+  .region-note { font-size: var(--size-caption); }
 
   .region-index {
     flex-direction: column;
