@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="css/lightbox.css">
-<link rel="stylesheet" href="css/style.css?v=31">
+<link rel="stylesheet" href="css/style.css?v=32">
 <style>
 /* ── the atlas ──
    Scoped to this page, as the photo grid was. Three new colours; everything
@@ -319,13 +319,21 @@ main { padding-bottom: var(--atlas-gap); }
    — so the surround stays proportional as the sheet scales. */
 .card-photo { display: block; margin: 7% 7% 0; }
 
+/* Every property here beyond the first is undoing the global img rule in
+   style.css, which sets width: 70%, height: 50%, object-fit: contain,
+   max-height: fit-content and a border-radius on every image on the site.
+   `height` is the one that actually bit: aspect-ratio only gets to decide a
+   box's second dimension when the other is auto, so a specified height meant
+   the square crop was never applied and the thumbnails came out as strips. */
 .card-photo img {
   display: block;
   width: 100%;
+  height: auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  max-width: none;    /* overrides the global img rule in style.css */
+  max-width: none;
   max-height: none;
+  border-radius: 0;   /* a polaroid has square corners */
 }
 
 .card-cap {
@@ -519,8 +527,17 @@ main { padding-bottom: var(--atlas-gap); }
     position: static;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* start, not the default stretch: a card should be as tall as its own
+       photograph and caption, rather than as tall as the tallest card beside
+       it, which leaves the short one with a pool of white under its caption. */
+    align-items: start;
     gap: 10px;
   }
+
+  /* The frame carries an inline aspect-ratio from atlas.js for the map. With
+     the map hidden and a column of cards in its place, that ratio is meaning-
+     less and would squash or stretch the grid. */
+  .sheet-frame { aspect-ratio: auto !important; }
 
   .card {
     position: static;
