@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="css/lightbox.css">
-<link rel="stylesheet" href="css/style.css?v=28">
+<link rel="stylesheet" href="css/style.css?v=29">
 </head>
 
 <body class="landing">
@@ -55,7 +55,14 @@
 <h1 class="masthead">callum huntington</h1>
 
 <div class="backgroundimage">
-<img class="landing-photo" src="pic_callumhuntington.jpeg" alt="Callum Huntington">
+<!-- Art direction: the two-column layout gives the photo a tall narrow slot,
+     the stacked one gives it a wide shallow slot. The browser downloads only
+     the source that matches, so this costs nothing.
+     NOTE: the 900px below must stay in step with the media query in style.css. -->
+<picture>
+<source media="(min-width: 900px)" srcset="portraitpic_callumhuntington.jpeg">
+<img class="landing-photo" src="squarepic_callumhuntington.jpeg" alt="Callum Huntington">
+</picture>
 </div>
 
 <div class="aboutprojectcontainer">
