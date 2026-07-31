@@ -188,6 +188,15 @@ body.landing .backgroundimage {
     padding: calc(var(--shell) + var(--reveal));   /* room for the frame rings */
 }
 
+/* <picture> is a wrapper with no box of its own to speak of. Left as a normal
+   element it would sit between .backgroundimage and the image, and the img's
+   max-height:100% would measure against IT — an auto height, which makes the
+   percentage resolve to nothing. display:contents removes it from layout so
+   the img stays a direct flex child of the slot. */
+picture {
+    display: contents;
+}
+
 .landing-photo {
     display: block;
     /* Both maxima, no width or height: a replaced element shrinks to satisfy
