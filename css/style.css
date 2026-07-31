@@ -145,10 +145,13 @@ html, body {
 /* Landing masthead. Delete this rule and its element in index.html if you
    would rather the page opened straight onto the photograph. */
 .masthead {
-    flex: 0 0 auto;              /* takes its own height; the photo and the
-                                    text below still divide what is left 7:3 */
-    margin-top: 13vh;            /* clear the 10vh nav, plus air */
-    padding: 0.1em 1rem 0.15em;
+    flex: 0 0 auto;
+    padding: 0 1rem;
+    /* Orbita is caps-only, but its line box still reserves 0.22em below the
+       baseline for descenders it never draws — so the element sits taller than
+       the letters look. Cancelling most of that evens the gap above the photo
+       against the one below it, and the freed space goes to the picture. */
+    margin-bottom: -0.1em;
     font-family: var(--font-display);
     font-weight: var(--weight-display);
     font-size: clamp(2rem, 7.5vw, 4.6rem);
@@ -156,6 +159,12 @@ html, body {
     letter-spacing: 0.02em;
     text-align: center;
     color: #1a1a1a;
+}
+
+/* The nav is fixed, so the page has to clear it. This used to sit on the
+   masthead; now the masthead is inside a column it belongs on the wrapper. */
+body.landing .page-wrapper {
+    padding-top: 13vh;
 }
 
 /* Only for landing page */
@@ -201,15 +210,32 @@ body.landing .backgroundimage {
 }
 
 body.landing .content {
-    flex: 0 0 auto;   /* takes its natural height and keeps it */
+    flex: 1 1 0;        /* holds the photo, the text and the socials */
+    min-height: 0;
+    align-items: stretch;
+}
+
+/* Photo and paragraph. A column on phones — photo above text, exactly as
+   before — and a row on a wide screen, where the leftover space is horizontal
+   rather than vertical. */
+.landing-body {
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    max-width: 66rem;      /* stop the whole block spanning a wide window */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;          /* equal air above and below the photograph, so the
+                              text cannot end up pressed against its frame */
 }
 
 /* On a short window the fixed parts alone can fill the screen, which would
    leave the photograph nothing and start clipping the text. Trimming the
    masthead and the footer buys the picture room back. */
 @media (max-height: 620px) {
+    body.landing .page-wrapper { padding-top: 11.5vh; }
     .masthead {
-        margin-top: 11.5vh;
         font-size: clamp(1.5rem, 5vw, 2.6rem);
         padding-bottom: 0;
     }
@@ -455,13 +481,17 @@ body.landing .content {
 }
 
 .aboutprojectcontainer {
-    align-items: flex-start;
+    align-items: center;
     display: flex;
     text-align: center;
     justify-content: center;
     width: 90%;
-    margin: auto;
-    height: 50%;
+    margin: 0 auto;
+    /* Was height: 50%, left over from the original layout. As a flex item that
+       reserved half of .landing-body for the text no matter how short it was,
+       and the photograph could only have what remained. Sizing to content hands
+       that space back to the picture. */
+    height: auto;
 }
 
 .mathematicscontainer {
@@ -478,6 +508,10 @@ body.landing .content {
     font-weight: var(--weight-body);
     font-size: var(--size-lede);
     width: 100%;
+    max-width: 34rem;    /* ~60 characters. It was running to about 90, which
+                            is what made the wide layout read as a slab and the
+                            photo look undersized next to it. */
+    margin: 0 auto;
     color: var(--ink);   /* same as the nav labels and the social buttons */
 }
 
@@ -538,11 +572,15 @@ body.landing .content {
     background-color: var(--ink);
     box-shadow: 0px 7px 5px rgba(0, 0, 0, 0.5);
     font-size: 22px;             /* adjust icon size */
-    transition: transform var(--speed) var(--ease);
+    text-decoration: none;       /* these are links, so they were picking up
+                                    an underline beneath the glyph on hover */
+    transition: transform var(--speed) var(--ease),
+                background-color var(--speed) var(--ease);
 }
 
 .socials ul li a:hover {
-    transform: translateY(-10px); /* lift circle slightly on hover */
+    background-color: var(--accent);   /* the whole disc fills */
+    transform: translateY(-10px);      /* and lifts, as before */
 }
 
 .socials ul li .fa, 
@@ -755,4 +793,67 @@ img:hover {
   font-weight: var(--weight-display);
   font-size: var(--size-h2);
   margin: 0 0 0.5em;
+}
+
+
+/* ---------------------------------------------------------------------------
+   WIDE SCREENS. This block is at the end of the file on purpose. Several rules
+   it overrides — .aboutprojectcontainer, .masthead — are declared further down
+   than it used to sit, and at equal specificity the later rule wins, so half of
+   these declarations were being silently discarded. In particular the base
+   margin:auto was re-centring the paragraph inside its grid area, which is what
+   opened the gap under the masthead.
+   --------------------------------------------------------------------------- */
+@media (min-width: 900px) {
+    .landing-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
+        /* Empty tracks top and bottom: the masthead and paragraph sit together
+           as one vertically centred pair, while the photograph still spans the
+           full height of the column. */
+        grid-template-rows: 1fr auto auto 1fr;
+        grid-template-areas:
+            ".        photo"
+            "masthead photo"
+            "text     photo"
+            ".        photo";
+        column-gap: 2.5rem;
+        row-gap: 0;        /* the gap above is for the stacked layout only;
+                              here the empty grid tracks do the spacing */
+        padding: 0 1.5rem;
+    }
+
+    .masthead {
+        grid-area: masthead;
+        text-align: center;      /* centred over the paragraph beneath it */
+        margin: 0;               /* clears the stacked layout's -0.1em */
+        padding: 0 0 0.1em;
+    }
+
+    .aboutprojectcontainer {
+        grid-area: text;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        width: auto;
+        height: auto;
+        margin: 0;               /* NOT auto: that would re-centre it and
+                                    reopen the gap under the masthead */
+        text-align: center;
+    }
+
+    body.landing .backgroundimage {
+        grid-area: photo;
+        height: 100%;
+        padding: calc(var(--shell) + var(--reveal));
+    }
+
+    .landing-photo {
+        max-width: 100%;
+    }
+
+    /* the breathing room belongs here instead */
+    body.landing footer {
+        margin-top: 2.5rem;
+    }
 }
