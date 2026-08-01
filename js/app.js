@@ -1,25 +1,10 @@
-$(window).scroll(function() {    
-    var blockscroll = $(window).scrollTop();
-    if (blockscroll >= $(window).height()*0.05) {
-        $(".image").addClass("scrolling");
-    } else {
-        $(".image").removeClass("scrolling");
-    }
-    if (blockscroll >= $(window).height()*0.05) {
-        $(".nav-bar a").addClass("scrolling");
-    } else {
-        $(".nav-bar a").removeClass("scrolling");
-    }
-    if (blockscroll >= $(window).height()*0.05) {
-        $(".nav-bar").addClass("scrolling");
-    } else {
-        $(".nav-bar").removeClass("scrolling");
-    }
-    if (blockscroll >= $(window).height()*0.05) {
-        $(".nav-links").addClass("scrolling");
-    } else {
-        $(".nav-links").removeClass("scrolling");
-    }
+/* Marks the nav band once the page has moved. One condition, not four: the
+   original ran the same test separately for .image, .nav-bar, .nav-bar a and
+   .nav-links, of which only the middle two exist in any page on the site. */
+$(window).on('scroll', function () {
+  var past = $(window).scrollTop() >= $(window).height() * 0.05;
+  $('.nav-bar').toggleClass('scrolling', past);
+  $('.nav-bar a').toggleClass('scrolling', past);
 });
 
 $(document).ready(function() {
@@ -44,9 +29,14 @@ $(document).ready(function() {
     // Get current navbar height (will update on resize)
     var navHeight = $('.nav-bar').outerHeight();
 
+    // Someone who has asked their system for less movement should get the
+    // jump, not an 800ms glide. Same destination either way.
+    var still = window.matchMedia &&
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Animate scroll
     $('html, body').animate({
       scrollTop: target.offset().top - navHeight
-    }, 800);
+    }, still ? 0 : 800);
   });
 });

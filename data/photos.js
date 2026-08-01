@@ -31,6 +31,22 @@
  * Order matters twice over: it is the order the lightbox pages through, and
  * within a group the first record is the card on top of the pile.
  */
+/* Hand exchanges, by region and group name. The solver picks which card goes
+ * on which pin, and it optimises for strings that do not cross and do not run
+ * too far. It cannot see everything: two cards can avoid crossing and still
+ * look the wrong way round, because one pin is east of the other while its
+ * card sits west.
+ *
+ * Listing a pair here exchanges their two cards after placement is finished.
+ * That is a permutation of positions the solver already chose, so nothing else
+ * on the sheet moves — no card overlaps another, none leaves the sheet, and
+ * the map stays exactly as clear as it was. Rebuild after editing.
+ */
+window.CARD_SWAPS = {
+  yugoslavia: [['dubrovnik', 'zabljak']],
+  iberia:     [['sansebastian', 'bilbao']],
+};
+
 window.PHOTOS = [
 
   /* ── former yugoslavia ─────────────────────────────────────────────────── */
@@ -230,7 +246,7 @@ window.PHOTOS = [
    region: 'britishisles', dir: 'britishisles', group: 'staithes',
    lat: 54.5586, lon: -0.7889},
 
-  {id: 'scarborough',          place: 'Scarborough',  sub: 'England',     year: 2022,
+  {id: 'scarborough',          place: 'Scarborough',  sub: 'England',     year: 2023,
    region: 'britishisles', dir: 'britishisles', group: 'scarborough',
    lat: 54.2830, lon: -0.3993},
 
@@ -291,7 +307,7 @@ window.PHOTOS = [
    region: 'britishisles', dir: 'britishisles', group: 'london',
    lat: 51.5074, lon: -0.1278},
 
-  {id: 'london2',              place: 'London',       sub: 'England',     year: 2022,
+  {id: 'london2',              place: 'Brick Lane',       sub: 'England',     year: 2022,
    region: 'britishisles', dir: 'britishisles', group: 'london',
    lat: 51.5074, lon: -0.1278},
 
@@ -306,5 +322,109 @@ window.PHOTOS = [
   {id: 'cork',                 place: 'Cork',         sub: 'Ireland',     year: 2022,
    region: 'britishisles', dir: 'britishisles', group: 'cork',
    lat: 51.8985, lon: -8.4756},
+
+  /* ── iberia ────────────────────────────────────────────────────────────── */
+  /* Spain north to south, then Portugal, on the same pattern as Britain then
+     Ireland. The sheet spans two countries, so `sub` is the country. */
+
+  {id: 'sansebastian', place: 'San Sebastián', sub: 'Spain',    year: 2021,
+   region: 'iberia', dir: 'iberia', group: 'sansebastian',
+   lat: 43.3183, lon: -1.9812},
+
+  {id: 'bilbao',       place: 'Bilbao',        sub: 'Spain',    year: 2021,
+   region: 'iberia', dir: 'iberia', group: 'bilbao',
+   lat: 43.2630, lon: -2.9350},
+
+  {id: 'madrid',       place: 'Madrid',        sub: 'Spain',    year: 2025,
+   region: 'iberia', dir: 'iberia', group: 'madrid',
+   lat: 40.4168, lon: -3.7038},
+
+  {id: 'seville',      place: 'Seville',       sub: 'Spain',    year: 2021,
+   region: 'iberia', dir: 'iberia', group: 'seville',
+   lat: 37.3891, lon: -5.9845},
+
+  {id: 'porto',        place: 'Porto',         sub: 'Portugal', year: 2022,
+   region: 'iberia', dir: 'iberia', group: 'porto',
+   lat: 41.1579, lon: -8.6291},
+
+  {id: 'lisbon',       place: 'Lisbon',        sub: 'Portugal', year: 2022,
+   region: 'iberia', dir: 'iberia', group: 'lisbon',
+   lat: 38.7223, lon: -9.1393},
+
+  /* ── united states ─────────────────────────────────────────────────────── */
+  /* West to east. One country, so `sub` is the state, on the same rule that
+     gives Italy its regions.
+
+     Grouped by city rather than by frame: at the scale of the contiguous
+     United States, Hollywood and Venice Beach are three units apart and the
+     two NYC landmarks about one, so a pin each would be a pin in the same
+     place. Four pins, three of them piles. Years are yours to fill in. */
+
+  {id: 'sanfrancisco1',   place: 'Golden Gate Bridge', sub: 'California', year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'sanfrancisco',
+   lat: 37.7749, lon: -122.4194},
+
+  {id: 'sanfrancisco2',   place: 'Lombard Street',    sub: 'California', year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'sanfrancisco',
+   lat: 37.7749, lon: -122.4194},
+
+  {id: 'lahollywood',     place: 'Hollywood',        sub: 'California', year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'losangeles',
+   lat: 34.0928, lon: -118.3287},
+
+  {id: 'lamulhollanddr',  place: 'Mulholland Drive', sub: 'California', year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'losangeles',
+   lat: 34.1341, lon: -118.3897},
+
+  {id: 'lavenicebeach',   place: 'Venice Beach',     sub: 'California', year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'losangeles',
+   lat: 33.9850, lon: -118.4695},
+
+  {id: 'lasvegas1',       place: 'The Strip',        sub: 'Nevada',     year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'lasvegas',
+   lat: 36.1699, lon: -115.1398},
+
+  {id: 'lasvegas2',       place: 'Casino',           sub: 'Nevada',     year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'lasvegas',
+   lat: 36.1699, lon: -115.1398},
+
+  {id: 'nyctopoftherock', place: 'Top of the Rock',  sub: 'New York',   year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'newyork',
+   lat: 40.7593, lon: -73.9794},
+
+  {id: 'nyctomsdiner',    place: "Tom's Diner",      sub: 'New York',   year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'newyork',
+   lat: 40.8054, lon: -73.9618},
+
+  {id: 'nycsubway',       place: 'The Subway',       sub: 'New York',   year: 2019,
+   region: 'usa', dir: 'unitedstates', group: 'newyork',
+   lat: 40.7128, lon: -74.0060},
+
+  /* ── greece & turkey ───────────────────────────────────────────────────── */
+  /* The only PANELLED sheet: two city maps side by side rather than one
+     silhouette, because Athens and Istanbul are 560km apart with nothing
+     between them. A photograph is assigned to a panel by its coordinates, so
+     these need to fall inside the windows set in regions.mjs — the build
+     throws if one does not.
+
+     One kilometre is about eight sheet units here and a card is 150 wide, so
+     two places in the same neighbourhood will sit closer together than a
+     single card. Locations spread across the city read best. */
+
+  {id: 'athparthenon',        place: 'The Parthenon',        sub: 'Greece', year: 2022,
+   region: 'greeceturkey', dir: 'greeceturkey', group: 'parthenon',
+   lat: 37.9715, lon: 23.7267},
+
+  {id: 'atharchaeologymuseum', place: 'Archaeological Museum', sub: 'Greece', year: 2022,
+   region: 'greeceturkey', dir: 'greeceturkey', group: 'archaeologymuseum',
+   lat: 37.9891, lon: 23.7326},
+
+  {id: 'istfatih',            place: 'Fatih',                sub: 'Turkey', year: 2025,
+   region: 'greeceturkey', dir: 'greeceturkey', group: 'fatih',
+   lat: 41.01455, lon: 28.97689},
+
+  {id: 'istbosphorus',        place: 'The Bosphorus',        sub: 'Turkey', year: 2025,
+   region: 'greeceturkey', dir: 'greeceturkey', group: 'bosphorus',
+   lat: 41.07480, lon: 29.05595},
 
 ];

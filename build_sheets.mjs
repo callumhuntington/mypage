@@ -17,11 +17,15 @@
  * Run:  node build_sheets.mjs
  */
 
-import {readFileSync, writeFileSync, mkdirSync} from 'fs';
+import {readFileSync, writeFileSync, mkdirSync, existsSync} from 'fs';
 import * as tc from 'topojson-client';
 import {presimplify, simplify, quantile} from 'topojson-simplify';
 import {geoTransverseMercator, geoConicConformal, geoPath, geoBounds} from 'd3-geo';
 import {REGIONS, SPLIT_SUBUNITS, SUBUNIT_ALIAS} from './regions.mjs';
+
+// City panels, prepared by prepare_subunits.mjs from the 10m coastline.
+const CITIES = existsSync('cities-10m.json')
+  ? JSON.parse(readFileSync('cities-10m.json')) : {};
 
 // ── sheet geometry, in sheet units ───────────────────────────────────────────
 // The sheet is wider than it is deep because the silhouettes are fitted to its
@@ -44,6 +48,10 @@ const SHEET_W = 1400, SHEET_H = 720;
 // that the cards can use without touching the country.
 const FIT_X = 60, FIT_Y = 104;
 const FIT = [[FIT_X, FIT_Y], [SHEET_W - FIT_X, SHEET_H - FIT_Y]];
+
+// Panelled sheets: the gap between two city maps, and the room left under them
+// for each panel's name.
+const PANEL_GAP = 132, PANEL_LABEL = 34;
 
 const CARD_W = 150, CARD_H = 190;   // the polaroid, surround and caption
 const PAD    = 7;                   // breathing room between two cards
@@ -91,6 +99,7 @@ const shim = {};
 new Function('window', readFileSync('data/photos.js', 'utf8'))(shim);
 const PHOTOS = shim.PHOTOS;
 if (!Array.isArray(PHOTOS)) throw new Error('data/photos.js did not define window.PHOTOS');
+const SWAPS = shim.CARD_SWAPS || {};
 
 const seen = new Set();
 for (const p of PHOTOS) {
@@ -99,6 +108,39 @@ for (const p of PHOTOS) {
   if (!REGIONS[p.region]) throw new Error(`${p.id}: unknown region "${p.region}"`);
   if (typeof p.lat !== 'number' || typeof p.lon !== 'number')
     throw new Error(`${p.id}: needs lat and lon`);
+  if (!p.place || !p.sub) throw new Error(`${p.id}: needs place and sub`);
+}
+
+/* Do the photographs actually exist?
+ *
+ * Nothing else ever checks. A typo in an id, a file copied to the wrong
+ * folder, a rename done in Finder but not here — all of them produce a card
+ * that lays out perfectly, captions correctly, and shows a blank rectangle.
+ * The only way to notice is to open every region and look, which is exactly
+ * the sort of thing that gets skipped.
+ *
+ * The paths mirror what atlas.js asks the browser for:
+ *     images/<dir>/<id>_thumb.jpeg   the card
+ *     images/<dir>/<id>_full.jpeg    the lightbox
+ */
+const IMAGES = 'images';
+if (!existsSync(IMAGES)) {
+  console.warn(`! no ${IMAGES}/ directory beside this script — skipping the ` +
+               `image check. Run the build from the site root to enable it.\n`);
+} else {
+  const missing = [];
+  for (const p of PHOTOS)
+    for (const kind of ['thumb', 'full']) {
+      const path = `${IMAGES}/${p.dir}/${p.id}_${kind}.jpeg`;
+      if (!existsSync(path)) missing.push(path);
+    }
+  if (missing.length) {
+    console.error(`\n${missing.length} image${missing.length === 1 ? '' : 's'} ` +
+                  `referenced by data/photos.js but not on disk:`);
+    for (const m of missing) console.error('   ' + m);
+    throw new Error('missing images — fix the paths or the ids and re-run');
+  }
+  console.log(`${PHOTOS.length * 2} image files present and correct.\n`);
 }
 
 // ── load the coastlines ──────────────────────────────────────────────────────
@@ -173,12 +215,48 @@ function clipRect(multi, box) {
   const polys = multi.type === 'Polygon' ? [multi.coordinates] : multi.coordinates;
   const kept = [];
   for (const poly of polys) {
-    const rings = poly.map(clipRing).filter(r => r.length >= 3)
+    const rings = poly.map(clipRing).map(despur).filter(r => r.length >= 3)
                       .map(r => r.concat([r[0]]));
     if (rings.length) kept.push(rings);
   }
   if (!kept.length) throw new Error('sheetClip window removed everything');
   return {type: 'MultiPolygon', coordinates: kept};
+}
+
+/* Remove zero-width spurs.
+ *
+ * When a coastline leaves the clip window and comes back in near the same
+ * place, Sutherland–Hodgman joins the exit to the entry along the boundary and
+ * leaves a spur that goes out and returns down its own path. It encloses no
+ * area, so it is invisible to any area test — but a renderer still antialiases
+ * the two coincident edges and draws a faint hairline in open water. That is
+ * the ghost line that appeared west of Athens.
+ *
+ * A spur is a vertex whose incoming and outgoing directions are opposite.
+ * Removing it merges its neighbours; repeat until none is left. The threshold
+ * is a fifth of a degree of reversal, far tighter than any real headland. */
+function despur(ring) {
+  const pts = ring.slice();
+  if (pts.length > 1 &&
+      pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1])
+    pts.pop();
+
+  let changed = true;
+  while (changed && pts.length > 3) {
+    changed = false;
+    for (let i = 0; i < pts.length; i++) {
+      const n = pts.length;
+      const a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n];
+      const ux = b[0] - a[0], uy = b[1] - a[1];
+      const vx = c[0] - b[0], vy = c[1] - b[1];
+      const lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy);
+      if (lu === 0 || lv === 0) { pts.splice(i, 1); changed = true; break; }
+      if ((ux * vx + uy * vy) / (lu * lv) < -0.99999) {
+        pts.splice(i, 1); changed = true; break;
+      }
+    }
+  }
+  return pts;
 }
 
 function sink(minArea) {
@@ -206,6 +284,52 @@ function sink(minArea) {
     arc() {},
     result() { flush(); const s = out.join(''); out = []; return s; },
   };
+}
+
+/* ── panelled sheets ─────────────────────────────────────────────────────────
+ *
+ * Two or more city maps side by side in one sheet, each fitted to its own
+ * window with its own projection. Everything downstream — the land field, the
+ * card solver, the untangler — works on the finished sheet and neither knows
+ * nor cares that it was assembled from panels. The only thing that has to be
+ * panel-aware is deciding which projection a given photograph goes through.
+ */
+function buildPanels(region, key) {
+  const panels = region.panels;
+  const usable = SHEET_W - FIT_X * 2 - PANEL_GAP * (panels.length - 1);
+  const w = usable / panels.length;
+
+  const out = [];
+  for (let i = 0; i < panels.length; i++) {
+    const p = panels[i];
+    const rings = CITIES[key + '/' + p.label];
+    if (!rings)
+      throw new Error(`${key}/${p.label}: no city data — run prepare_subunits.mjs`);
+
+    const geom = clipRect({type: 'MultiPolygon', coordinates: rings.map(r => [r])},
+                          p.box);
+    const x0 = FIT_X + i * (w + PANEL_GAP);
+    const rect = [[x0, FIT_Y], [x0 + w, SHEET_H - FIT_Y - PANEL_LABEL]];
+
+    const [lonW, lonE, latS, latN] = p.box;
+    const proj = geoTransverseMercator()
+      .rotate([-(lonW + lonE) / 2, 0])
+      .center([0, (latS + latN) / 2]);
+    // fitExtent on the WINDOW, not on the land, so the two panels stay at the
+    // scale their boxes imply. Fitting to the coastline would silently zoom a
+    // panel whose land happens to sit in one corner.
+    //
+    // The window is four POINTS, not a polygon. d3 reads spherical polygons by
+    // winding order, and a rectangle wound the wrong way means "the whole
+    // globe except this box" — which fitted the projection to the planet and
+    // drew Athens seven pixels wide. A MultiPoint has no winding to get wrong.
+    const win = {type: 'MultiPoint', coordinates: [
+      [lonW, latS], [lonE, latS], [lonE, latN], [lonW, latN]]};
+    proj.fitExtent(rect, win);
+
+    out.push({def: p, geom, proj, rect});
+  }
+  return out;
 }
 
 /* ── where the land is ───────────────────────────────────────────────────────
@@ -314,6 +438,122 @@ function lineSink() {
   };
 }
 
+/* ── untangling ──────────────────────────────────────────────────────────────
+ *
+ * The solver places cards well but assigns them to pins greedily, so two
+ * strings often cross where simply exchanging the two cards would fix it —
+ * Rome and San Gimignano, Sarajevo and Dubrovnik.
+ *
+ * Exchanging two cards leaves the SET of occupied positions exactly as it was.
+ * Card overlap, land coverage and sheet bounds therefore cannot change: they
+ * are properties of the set, not of the assignment. Only the strings move.
+ * That makes this a safe pass to run last, and it is why it can optimise
+ * purely for legibility without having to re-check anything else.
+ *
+ * Cost, in order of importance: strings that cross each other, strings that
+ * run underneath somebody else's card, and total string length as a tie-break
+ * so that all else being equal every photograph sits near its own pin.
+ */
+const CROSS_COST = 60, UNDER_COST = 22, LENGTH_COST = 0.03;
+
+function segmentsCross(p1, p2, p3, p4) {
+  const d = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const d1 = d(p3, p4, p1), d2 = d(p3, p4, p2);
+  const d3 = d(p1, p2, p3), d4 = d(p1, p2, p4);
+  return ((d1 > 0) !== (d2 > 0)) && ((d3 > 0) !== (d4 > 0));
+}
+
+// Does the segment a–b pass through the axis-aligned box centred on c?
+// Liang–Barsky, which is shorter than testing the four edges separately.
+function segmentHitsBox(a, b, c, w, h) {
+  const x0 = c[0] - w / 2, x1 = c[0] + w / 2;
+  const y0 = c[1] - h / 2, y1 = c[1] + h / 2;
+  let t0 = 0, t1 = 1;
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  for (const [p, q] of [[-dx, a[0] - x0], [dx, x1 - a[0]],
+                        [-dy, a[1] - y0], [dy, y1 - a[1]]]) {
+    if (p === 0) { if (q < 0) return false; continue; }
+    const r = q / p;
+    if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; }
+    else       { if (r < t0) return false; if (r < t1) t1 = r; }
+  }
+  return t1 > t0;
+}
+
+function tangle(groups) {
+  let cost = 0;
+  for (let i = 0; i < groups.length; i++) {
+    const g = groups[i];
+    cost += Math.hypot(g.card[0] - g.pin[0], g.card[1] - g.pin[1]) * LENGTH_COST;
+    for (let j = 0; j < groups.length; j++) {
+      if (i === j) continue;
+      const o = groups[j];
+      if (segmentHitsBox(g.pin, g.card, o.card, BOX.w, BOX.h)) cost += UNDER_COST;
+      if (j > i && segmentsCross(g.pin, g.card, o.pin, o.card)) cost += CROSS_COST;
+    }
+  }
+  return cost;
+}
+
+function untangle(groups, slack) {
+  const m = groups.filter(g => !g.fix);
+  // During the alternating rounds the reach test is loosened, because the
+  // relaxation that follows will pull an over-long string back within the
+  // limit. Enforcing it strictly at this point rejected the exchange that
+  // uncrosses Sarajevo and Dubrovnik purely because the intermediate state
+  // needed 508 units — a state that never survives to the finished sheet.
+  const limit = LEAD_MAX * (slack || 1);
+  const reach = (g, card) =>
+    Math.hypot(card[0] - g.pin[0], card[1] - g.pin[1]) <= limit;
+  let best = tangle(groups);
+
+  // Try an exchange, keep it only if the sheet reads better for it.
+  const attempt = apply => {
+    const undo = apply();
+    const now = tangle(groups);
+    if (now < best - 1e-9) { best = now; return true; }
+    undo();
+    return false;
+  };
+
+  for (let pass = 0; pass < 40; pass++) {
+    let improved = false;
+
+    // Pairs: the obvious case, two cards that plainly belong to each other's
+    // pins.
+    for (let i = 0; i < m.length; i++)
+      for (let j = i + 1; j < m.length; j++) {
+        const a = m[i], b = m[j];
+        if (!reach(a, b.card) || !reach(b, a.card)) continue;
+        improved = attempt(() => {
+          const t = a.card; a.card = b.card; b.card = t;
+          return () => { const u = a.card; a.card = b.card; b.card = u; };
+        }) || improved;
+      }
+
+    // Triples. Three strings can be knotted in a way no single exchange
+    // improves — each swap on its own makes matters worse — so pairs alone get
+    // stuck. Rotating three cards at once reaches those.
+    for (let i = 0; i < m.length && !improved; i++)
+      for (let j = 0; j < m.length; j++) {
+        if (j === i) continue;
+        for (let k = 0; k < m.length; k++) {
+          if (k === i || k === j) continue;
+          const a = m[i], b = m[j], c = m[k];
+          if (!reach(a, b.card) || !reach(b, c.card) || !reach(c, a.card)) continue;
+          if (attempt(() => {
+            const t = a.card; a.card = b.card; b.card = c.card; c.card = t;
+            return () => { const u = c.card; c.card = b.card; b.card = a.card; a.card = u; };
+          })) { improved = true; break; }
+        }
+        if (improved) break;
+      }
+
+    if (!improved) break;
+  }
+  return best;
+}
+
 // A stable small integer from a string, so a card's tilt never changes between
 // builds but also never had to be typed out by hand.
 function hash(s) {
@@ -411,9 +651,20 @@ function place(groups, scale, land) {
     placed.push(g);
   }
 
-  // Relaxation. The greedy pass gets close; this clears the residue, keeps
-  // every card on the sheet, and stops any of them wandering so far from its
-  // pin that the leader stops being believable.
+}
+
+/* Relaxation. The greedy pass gets close; this clears the residue, keeps every
+ * card on the sheet, and stops any of them wandering so far from its pin that
+ * the string stops being believable.
+ *
+ * Separate from the greedy pass so it can be run again after untangling. The
+ * two alternate: untangling decides WHICH card belongs to which pin, relaxing
+ * decides WHERE the cards sit, and each makes the other's job easier. Running
+ * relaxation only once left Sarajevo and Dubrovnik crossed, because the
+ * exchange that would have fixed them needed a 508-unit string — but after the
+ * positions were allowed to settle around the new assignment, the same
+ * exchange needed far less. */
+function relax(groups, land) {
   for (let iter = 0; iter < 900; iter++) {
     let moved = 0;
     for (let i = 0; i < groups.length; i++) {
@@ -526,6 +777,32 @@ const sheets = {};
 for (const key of Object.keys(REGIONS)) {
   const photos = byRegion.get(key) || [];
   const r = REGIONS[key];
+
+  // ── panelled: two or more city maps in one sheet ──
+  if (r.panels) {
+    const built = buildPanels(r, key);
+    let path = '', borders = '';
+    for (const b of built) {
+      const s = sink(MIN_RING);
+      geoPath(b.proj, s)(b.geom);
+      path += s.result();
+    }
+    // which panel does a coordinate belong to?
+    const panelOf = (lon, lat) => built.find(b => {
+      const [w, e, s, n] = b.def.box;
+      return lon >= w && lon <= e && lat >= s && lat <= n;
+    });
+    const projectAny = (lon, lat) => {
+      const b = panelOf(lon, lat);
+      if (!b) return null;
+      return b.proj([lon, lat]);
+    };
+    finish(key, r, photos, path, borders, projectAny,
+           built.map(b => ({label: b.def.label,
+                            rect: b.rect.flat().map(v => Math.round(v * 10) / 10)})));
+    continue;
+  }
+
   const admins = new Set(r.countries.map(c => SUBUNIT_ALIAS[c] || c));
   const mine = units.filter(g => admins.has(g.properties.admin));
   if (!mine.length) throw new Error(`${key}: no subunits matched`);
@@ -558,12 +835,23 @@ for (const key of Object.keys(REGIONS)) {
   geoPath(proj, ls)(borderGeom);
   const borders = ls.result();
 
+  finish(key, r, photos, path, borders, (lon, lat) => proj([lon, lat]), null,
+         {geom, proj, nUnits: new Set(mine.map(unitKey)).size});
+}
+
+/* Everything that happens once a sheet has a silhouette and a way of turning
+ * a coordinate into a position on it. Shared by ordinary sheets and panelled
+ * ones — the solver, the untangler and the report have no idea which they are
+ * working on. */
+function finish(key, r, photos, path, borders, project, panels, extra) {
   // one pin per group, in first-appearance order
   const groups = [];
   const index = new Map();
   for (const p of photos) {
     if (!index.has(p.group)) {
-      const xy = proj([p.lon, p.lat]);
+      const xy = project(p.lon, p.lat);
+      if (!xy) throw new Error(
+        `${p.id} at ${p.lat}, ${p.lon} falls outside every panel of ${key}`);
       const g = {key: p.group, pin: [Math.round(xy[0] * 10) / 10,
                                      Math.round(xy[1] * 10) / 10], ids: []};
       if (p.card) {
@@ -587,7 +875,43 @@ for (const key of Object.keys(REGIONS)) {
   const scale = scaleFor(groups.length, 1 - keepout.coverage);
   BOX = boxOf(scale);
   place(groups, scale, keepout);
+  relax(groups, keepout);
+  const before = tangle(groups);
 
+  // Alternate the two passes, and keep the best sheet any round produced
+  // rather than whichever one the last round happened to leave. Loosening the
+  // reach test lets untangling pass through states the relaxation then tidies
+  // up, but it also means a round can come out worse than the one before it —
+  // so the result is remembered, not assumed to improve monotonically.
+  let bestCost = tangle(groups);
+  let bestCards = groups.map(g => g.card.slice());
+  for (let round = 0; round < 10; round++) {
+    untangle(groups, 1.35);
+    relax(groups, keepout);
+    const now = tangle(groups);
+    if (now < bestCost - 1e-9) {
+      bestCost = now;
+      bestCards = groups.map(g => g.card.slice());
+    }
+  }
+  groups.forEach((g, i) => { g.card = bestCards[i]; });
+  // Last word goes to a strict pass, so nothing ships with an over-long string.
+  untangle(groups, 1);
+  relax(groups, keepout);
+
+  // Hand exchanges, applied after everything else. Exchanging two cards is a
+  // permutation of positions the solver already chose, so overlap, land cover
+  // and bounds are all untouched by construction — which is what makes it safe
+  // to overrule the machine here without re-running any of it.
+  const byKey = Object.fromEntries(groups.map(g => [g.key, g]));
+  for (const [a, c] of (SWAPS[key] || [])) {
+    if (!byKey[a] || !byKey[c])
+      throw new Error(`CARD_SWAPS.${key}: no such group "${byKey[a] ? c : a}"`);
+    const t = byKey[a].card; byKey[a].card = byKey[c].card; byKey[c].card = t;
+  }
+
+  // Tilt is keyed to the photograph, not to the slot, so a card keeps its own
+  // angle wherever untangling puts it.
   const cards = {};
   for (const g of groups) {
     g.ids.forEach((id, i) => {
@@ -604,16 +928,21 @@ for (const key of Object.keys(REGIONS)) {
   // as a percentage of the sheet's width, which is what the CSS needs
   const cardW = Math.round(CARD_W * scale / SHEET_W * 1000) / 10;
   sheets[key] = {w: SHEET_W, h: SHEET_H, path, borders, cardW, groups, cards};
+  if (panels) sheets[key].panels = panels;
 
   // ── report ────────────────────────────────────────────────────────────────
-  const b = geoPath(proj).bounds(geom);
   console.log(`\n${key} — ${photos.length} photographs in ${groups.length} groups` +
               (g_fixed(groups) ? `  (${g_fixed(groups)} placed by hand)` : ''));
-  const nUnits = new Set(mine.map(unitKey)).size;
-  console.log(`  silhouette ${(b[1][0]-b[0][0]).toFixed(0)}×${(b[1][1]-b[0][1]).toFixed(0)}` +
-              `   path ${(path.length/1024).toFixed(1)}kB` +
-              `   ${nUnits} unit${nUnits === 1 ? '' : 's'}, ` +
-              `borders ${(borders.length/1024).toFixed(1)}kB`);
+  if (panels) {
+    console.log(`  ${panels.length} panels: ${panels.map(p => p.label).join(', ')}` +
+                `   path ${(path.length / 1024).toFixed(1)}kB`);
+  } else {
+    const b = geoPath(extra.proj).bounds(extra.geom);
+    console.log(`  silhouette ${(b[1][0]-b[0][0]).toFixed(0)}×${(b[1][1]-b[0][1]).toFixed(0)}` +
+                `   path ${(path.length/1024).toFixed(1)}kB` +
+                `   ${extra.nUnits} unit${extra.nUnits === 1 ? '' : 's'}, ` +
+                `borders ${(borders.length/1024).toFixed(1)}kB`);
+  }
   if (groups.length) {
     const onLand = groups.reduce((t, g) => t + land.under(g.card, BOX.w, BOX.h), 0);
     const cardArea = groups.length * BOX.w * BOX.h;
@@ -651,6 +980,20 @@ for (const key of Object.keys(REGIONS)) {
                 (g.ids.length > 1 ? `   stack of ${g.ids.length}` : '') +
                 (g.nudged ? '   ← override pulled back onto the sheet' : ''));
   }
+  let crossings = 0, under = 0;
+  for (let i = 0; i < groups.length; i++)
+    for (let j = 0; j < groups.length; j++) {
+      if (i === j) continue;
+      if (segmentHitsBox(groups[i].pin, groups[i].card, groups[j].card, BOX.w, BOX.h)) under++;
+      if (j > i && segmentsCross(groups[i].pin, groups[i].card,
+                                 groups[j].pin, groups[j].card)) crossings++;
+    }
+  if (groups.length)
+    console.log(`  untangled ${before.toFixed(0)} -> ${tangle(groups).toFixed(0)}   ` +
+                `${crossings} crossing${crossings === 1 ? '' : 's'}, ` +
+                `${under} string${under === 1 ? '' : 's'} under a card`);
+  for (const [a, c] of (SWAPS[key] || []))
+    console.log(`  hand exchange: ${a} <-> ${c}`);
   console.log(`  overlap ${worst.toFixed(1)}px²   off-sheet ${off}   over-long leaders ${far}`);
   if (worst > 0.5 || off || far) {
     console.error('  *** placement did not fully resolve ***');

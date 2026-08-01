@@ -78,8 +78,26 @@ export const REGIONS = {
                  countries: ['Serbia', 'Croatia', 'Slovenia', 'Bosnia and Herz.',
                              'Montenegro', 'Macedonia', 'Kosovo']},
 
+  /* The only PANELLED region. Athens and Istanbul are 560km apart with nothing
+   * between them, so a single sheet of Greece and Turkey would be two dots on
+   * an empty map reaching to Iran. Instead the sheet is split into two city
+   * maps side by side, each with its own window and its own projection.
+   *
+   * `countries` still drives the world map, which is unchanged — the split
+   * exists only one level down. Panel windows are [lonW, lonE, latS, latN] and
+   * want to be roughly the same width as each other, or the two panels read as
+   * being at the same zoom when they are not. Both are about 65km across.
+   *
+   * These need the 10m coastline, not the 50m one the other sheets use: at
+   * city scale 50m data is a handful of vertices and draws a rectangle. */
   greeceturkey: {label: 'greece & turkey',
-                 countries: ['Greece', 'Turkey']},
+                 countries: ['Greece', 'Turkey'],
+                 panels: [
+                   {label: 'athens',   country: 'Greece',
+                    box: [23.35, 24.10, 37.66, 38.14]},
+                   {label: 'istanbul', country: 'Turkey',
+                    box: [28.62, 29.36, 40.85, 41.30]},
+                 ]},
 
   baltics:      {label: 'the baltics',
                  countries: ['Lithuania', 'Latvia', 'Estonia']},
