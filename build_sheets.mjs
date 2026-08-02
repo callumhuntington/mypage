@@ -76,7 +76,11 @@ const fitBox = () => [[FIT_X, FIT_Y], [SHEET_W - FIT_X, SHEET_H - FIT_Y]];
 
 // Panelled sheets: the gap between two city maps, and the room left under them
 // for each panel's name.
-const PANEL_GAP = 132, PANEL_LABEL = 34;
+// Panels used to carry their name underneath and the strip reserved for it
+// came out of the map's height. The names have gone, so the height goes back
+// to the drawing — which on a portrait window like Cape Town is the difference
+// between the peninsula filling the panel and not quite.
+const PANEL_GAP = 132;
 
 const CARD_W = 150, CARD_H = 190;   // the polaroid, surround and caption
 const PAD    = 7;                   // breathing room between two cards
@@ -334,7 +338,7 @@ function buildPanels(region, key) {
     const geom = clipRect({type: 'MultiPolygon', coordinates: rings.map(r => [r])},
                           p.box);
     const x0 = FIT_X + i * (w + PANEL_GAP);
-    const rect = [[x0, FIT_Y], [x0 + w, SHEET_H - FIT_Y - PANEL_LABEL]];
+    const rect = [[x0, FIT_Y], [x0 + w, SHEET_H - FIT_Y]];
 
     const [lonW, lonE, latS, latN] = p.box;
     const proj = geoTransverseMercator()

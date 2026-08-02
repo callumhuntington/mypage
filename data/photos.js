@@ -430,19 +430,25 @@ window.PHOTOS = [
      single dot — Sacré-Cœur and Shakespeare and Company are four kilometres
      apart, which is about a fifth of a card — so five pins would be five
      strings from the same place with the cards fighting for room around it.
-     One pin, one pile, fanning open on hover. */
+     One pin, one pile, fanning open on hover.
+
+     Order matters. build_sheets gives the FIRST record in a group the highest
+     z, so whichever is listed first is the photograph face-up on the pile —
+     Sacré-Cœur here. A hand placement has to sit on that first record too: the
+     override is read from whichever photograph creates the group and is
+     silently ignored on any of the others. */
+
+  {id: 'parissacrecoeur',       place: 'Sacré-Cœur',            sub: 'Île-de-France', year: 2024,
+   region: 'france', dir: 'france', group: 'paris', card: {angle: -9, lead: 344},
+   lat: 48.8867, lon: 2.3431},
 
   {id: 'pariseiffel',           place: 'The Eiffel Tower',      sub: 'Île-de-France', year: 2020,
-   region: 'france', dir: 'france', group: 'paris', card: {angle: -9, lead: 344},
+   region: 'france', dir: 'france', group: 'paris',
    lat: 48.8584, lon: 2.2945},
 
   {id: 'parismoulingalette',    place: 'Moulin de la Galette',  sub: 'Île-de-France', year: 2020,
    region: 'france', dir: 'france', group: 'paris',
    lat: 48.8873, lon: 2.3374},
-
-  {id: 'parissacrecoeur',       place: 'Sacré-Cœur',            sub: 'Île-de-France', year: 2024,
-   region: 'france', dir: 'france', group: 'paris',
-   lat: 48.8867, lon: 2.3431},
 
   {id: 'paris2ndarr',           place: 'The 2nd Arrondissement', sub: 'Île-de-France', year: 2024,
    region: 'france', dir: 'france', group: 'paris',
@@ -494,11 +500,11 @@ window.PHOTOS = [
 
   {id: 'eindhoven',             place: 'Eindhoven',             sub: 'Netherlands', year: 2026,
    region: 'lowcountries', dir: 'lowcountries', group: 'eindhoven',
-   lat: 51.4416, lon: 5.4697, nudge: [-13, 7]},
+   lat: 51.4416, lon: 5.4697, nudge: [-6, 3]},
 
   {id: 'nuenen',                place: 'Nuenen',                sub: 'Netherlands', year: 2026,
    region: 'lowcountries', dir: 'lowcountries', group: 'nuenen',
-   lat: 51.4700, lon: 5.5500, nudge: [13, -7]},
+   lat: 51.4700, lon: 5.5500, nudge: [6, -3]},
 
   /* ── baltic finnic ─────────────────────────────────────────────────────── */
 

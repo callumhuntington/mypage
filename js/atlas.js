@@ -249,29 +249,27 @@
 
       mapG.appendChild(svgEl('path', {'class': 'sheet-land', d: sheet.path}));
 
-      // A panelled sheet is several city maps side by side. Each gets its name
-      // underneath, and a hairline divides them — without it two maps at two
-      // different scales read as one continuous piece of coast.
+      // A panelled sheet is several city maps side by side, divided by a
+      // hairline — without it two maps at two different scales read as one
+      // continuous piece of coast.
+      //
+      // The panels used to be named underneath. They are not any more: the
+      // photographs say where they are, and a caption on a map that is already
+      // a recognisable shape only tells you what you can see. The names still
+      // exist in regions.mjs, where they identify which window is which.
       if (sheet.panels) {
         sheet.panels.forEach(function (pan, i) {
+          if (!i) return;
+          // The rule runs past the maps at both ends. Stopping flush with them
+          // read as a seam between two halves of one drawing; overrunning it
+          // reads as a divider between two separate ones.
           var r = pan.rect;   // x0, y0, x1, y1
-          if (i) {
-            // The rule runs past the maps at both ends. Stopping flush with
-            // them read as a seam between two halves of one drawing; overrunning
-            // it reads as a divider between two separate ones.
-            var x = (r[0] + sheet.panels[i - 1].rect[2]) / 2;
-            var over = 54;
-            mapG.appendChild(svgEl('line', {
-              'class': 'panel-rule',
-              x1: x, y1: r[1] - over, x2: x, y2: r[3] + 30 + over,
-            }));
-          }
-          var t = svgEl('text', {
-            'class': 'panel-label',
-            x: (r[0] + r[2]) / 2, y: r[3] + 30, 'text-anchor': 'middle',
-          });
-          t.textContent = pan.label;
-          mapG.appendChild(t);
+          var x = (r[0] + sheet.panels[i - 1].rect[2]) / 2;
+          var over = 54;
+          mapG.appendChild(svgEl('line', {
+            'class': 'panel-rule',
+            x1: x, y1: r[1] - over, x2: x, y2: r[3] + over,
+          }));
         });
       }
 
