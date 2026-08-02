@@ -210,6 +210,20 @@ picture {
     width: auto;
     height: auto;
 
+    /* A floor, because the maxima have none: on a short window max-height: 100%
+       is whatever the row had left after the masthead and the paragraph, and
+       the portrait was being squeezed down to a stamp.
+
+       Capped at the box, though. A bare 250px is a minimum the element will
+       meet whether or not there is room, and when there was not it stopped
+       obeying its slot and was painted straight over the text beneath. min()
+       makes the floor conditional: 250px where the slot can hold it, the slot
+       otherwise. Where the height is indefinite the percentage has nothing to
+       resolve against and the floor lifts entirely, which is the right answer
+       there too — nothing is being squeezed if nothing is bounding it. */
+    min-width: min(250px, 100%);
+    min-height: min(250px, 100%);
+
     border-radius: max(0px, calc(var(--radius) - var(--shell) - var(--reveal)));
 
     /* The window as two shadow rings rather than border + padding. Shadows sit

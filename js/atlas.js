@@ -730,10 +730,19 @@
     // Measured at the base size, but it does not move with it: the index sits
     // under the map, and the map's height does not depend on the index.
     var pad = parseFloat(getComputedStyle(main).paddingBottom) || 0;
+    // A few pixels held back. The fit was landing exactly on the boundary, and
+    // exactly is not a safe place to land: sub-pixel rounding in the row
+    // heights was enough to drop the last line of names below the fold.
     var room = document.documentElement.clientHeight
-             - index.getBoundingClientRect().top - pad;
+             - index.getBoundingClientRect().top - pad - 10;
 
-    var lo = base, hi = 44, best = base, mid;
+    // The floor sits BELOW the size the stylesheet asked for. Growing is the
+    // usual job — filling ground the map left over — but when even the base
+    // size does not fit, the alternative to shrinking is a row of regions
+    // hanging off the bottom of the page, and a name you cannot read is worse
+    // than a small one. The search still returns the largest size that fits,
+    // so a page with room to spare is unaffected.
+    var lo = base * 0.75, hi = 44, best = lo, mid;
     for (var i = 0; i < 12; i++) {
       mid = (lo + hi) / 2;
       index.style.fontSize = mid + 'px';

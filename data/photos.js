@@ -450,7 +450,7 @@ window.PHOTOS = [
    region: 'france', dir: 'france', group: 'paris',
    lat: 48.8873, lon: 2.3374},
 
-  {id: 'paris2ndarr',           place: 'The 2nd Arrondissement', sub: 'Île-de-France', year: 2024,
+  {id: 'paris2ndarr',           place: '2e arr.', sub: 'Île-de-France', year: 2024,
    region: 'france', dir: 'france', group: 'paris',
    lat: 48.8686, lon: 2.3412},
 
@@ -470,6 +470,44 @@ window.PHOTOS = [
   {id: 'hendaye',               place: 'Hendaye',               sub: 'Nouvelle-Aquitaine', year: 2021,
    region: 'france', dir: 'france', group: 'hendaye', card: {angle: 155, lead: 195},
    lat: 43.3591, lon: -1.7746},
+
+  /* ── austria-germany ───────────────────────────────────────────────────── */
+
+  /* Four Berlin frames on one pin and three Vienna ones on another. Within a
+     city the distances are nothing at this scale — Konnopke's to Viktoriapark
+     is six kilometres, about three units against a card 150 wide. */
+
+  {id: 'berlinbrandenburggate', place: 'Brandenburg Gate',  sub: 'Germany', year: 2021,
+   region: 'austriagermany', dir: 'austriagermany', group: 'berlin',
+   lat: 52.5163, lon: 13.3777},
+
+  {id: 'berlinkonnopkesimbiss', place: "Konnopke's Imbiss",     sub: 'Germany', year: 2021,
+   region: 'austriagermany', dir: 'austriagermany', group: 'berlin',
+   lat: 52.5411, lon: 13.4127},
+
+  {id: 'berlinviktoriapark',    place: 'Viktoriapark',          sub: 'Germany', year: 2021,
+   region: 'austriagermany', dir: 'austriagermany', group: 'berlin',
+   lat: 52.4880, lon: 13.3810},
+
+  {id: 'berlinschmittz',        place: 'Schmittz',              sub: 'Germany', year: 2021,
+   region: 'austriagermany', dir: 'austriagermany', group: 'berlin',
+   lat: 52.5276, lon: 13.4056},
+
+  {id: 'hamburg',               place: 'Hamburg',               sub: 'Germany', year: 2018,
+   region: 'austriagermany', dir: 'austriagermany', group: 'hamburg',
+   lat: 53.5511, lon: 9.9937},
+
+  {id: 'cologne',               place: 'Cologne',               sub: 'Germany', year: 2024,
+   region: 'austriagermany', dir: 'austriagermany', group: 'cologne',
+   lat: 50.9375, lon: 6.9603},
+
+  {id: 'viennariesenrad',       place: 'Wiener Riesenrad',         sub: 'Austria', year: 2024,
+   region: 'austriagermany', dir: 'austriagermany', group: 'vienna',
+   lat: 48.2165, lon: 16.3958},
+
+  {id: 'viennastmarxcemetery',  place: 'St. Marx Cemetery',     sub: 'Austria', year: 2024,
+   region: 'austriagermany', dir: 'austriagermany', group: 'vienna',
+   lat: 48.1846, lon: 16.4034},
 
   /* ── the low countries ─────────────────────────────────────────────────── */
 
@@ -563,7 +601,7 @@ window.PHOTOS = [
    region: 'southafrica', dir: 'southafrica', group: 'tablemountain',
    lat: -33.9628, lon: 18.4098},
 
-  {id: 'tablemountain2',        place: 'Table Mountain',        sub: 'Western Cape', year: 2025,
+  {id: 'tablemountain2',        place: 'Platteklip Gorge',        sub: 'Western Cape', year: 2025,
    region: 'southafrica', dir: 'southafrica', group: 'tablemountain',
    lat: -33.9628, lon: 18.4098},
 

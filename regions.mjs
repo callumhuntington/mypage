@@ -58,8 +58,12 @@ export const REGIONS = {
                  countries: ['France'],
                  clip: [-6, 10, 41, 52]},                  // drops Guyane et al
 
-  germany:      {label: 'germany',
-                 countries: ['Germany']},
+  // One sheet rather than two. Vienna is closer to Munich than Munich is to
+  // Hamburg, the border between them is nowhere in the photographs, and a
+  // region of three Berlin frames beside a region of three Vienna ones would
+  // be two thin sheets where one full one will do.
+  austriagermany: {label: 'austria-germany',
+                 countries: ['Germany', 'Austria']},
 
   lowcountries: {label: 'the low countries',
                  countries: ['Belgium', 'Netherlands', 'Luxembourg'],
