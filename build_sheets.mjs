@@ -41,13 +41,38 @@ const CITIES = existsSync('cities-10m.json')
 // empty. The ceiling is the frame's aspect ratio: past about 2:1 the frame
 // stops being limited by the window's height and starts being limited by its
 // width, at which point the map does begin to shrink.
-const SHEET_W = 1400, SHEET_H = 720;
+const SHEET_W = 1400, BASE_H = 720;
+
+// The sheet's height is no longer a constant. The same region is solved at
+// several frame proportions and the browser interpolates between them as the
+// window moves, which is how the cards come to use the empty ground under a
+// narrow window instead of merely being centred in it.
+//
+// Solving in the browser was the obvious alternative and is not possible:
+// Italy's solve is 3.8 SECONDS — a greedy sweep, 900 relaxation iterations
+// over every pair, ten alternating rounds of untangling, then a strict pass.
+// A continuous re-layout has 16ms. Sampling here and interpolating there gets
+// the same result three orders of magnitude cheaper.
+//
+// Everything downstream reads SHEET_H, so it is a let and each frame sets it.
+let SHEET_H = BASE_H;
+
+// Frame heights, tallest last. 720 is the base and must come first: it is the
+// one the projection is actually fitted to, and every other frame is derived
+// from it by a similarity transform.
+//   720 -> 1.94:1   the wide layout, unchanged
+//  1750 -> 0.80:1   about as tall as a sheet is worth making
+const FRAME_HEIGHTS = [720, 780, 850, 930, 1020, 1120, 1240, 1380, 1500, 1620, 1750];
+
+// Which regions get the extra frames. Solving is not free — Yugoslavia's six
+// frames cost about a second — and this is new, so it starts on one region.
+const MULTIFRAME = new Set(['yugoslavia']);
 // Inset of the silhouette within the sheet. FIT_Y is the one that matters:
 // every region so far is fitted to its height, so this is what decides how
 // large the map is drawn — and it buys a band of clear white above and below
 // that the cards can use without touching the country.
 const FIT_X = 60, FIT_Y = 104;
-const FIT = [[FIT_X, FIT_Y], [SHEET_W - FIT_X, SHEET_H - FIT_Y]];
+const fitBox = () => [[FIT_X, FIT_Y], [SHEET_W - FIT_X, SHEET_H - FIT_Y]];
 
 // Panelled sheets: the gap between two city maps, and the room left under them
 // for each panel's name.
@@ -418,6 +443,238 @@ function landField(pathD, margin) {
   return {under, coverage: total * GRID * GRID / (SHEET_W * SHEET_H)};
 }
 
+/* ── frames ──────────────────────────────────────────────────────────────────
+ *
+ * A taller sheet is not a different projection, only a different fit. Both are
+ * fitExtent onto a box of the same width, so one is a uniform scale and a
+ * translate away from the other — which means the extra frames need no
+ * re-projection, no second path, and no second set of coastlines. The browser
+ * is sent the base path and three numbers per frame.
+ *
+ * Deriving the transform rather than re-fitting also guarantees the frames
+ * agree with each other exactly, and that frame 0 is the identity. */
+function pathBounds(d) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const m of d.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)) {
+    const x = +m[1], y = +m[2];
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  }
+  return [x0, y0, x1, y1];
+}
+
+/* How large the map is drawn on a frame of height H.
+ *
+ * NOT fitExtent. Fitting the silhouette to a taller sheet was the obvious
+ * thing and the wrong one: the map grew with the sheet — 2.16x by the tallest
+ * frame — so a narrow window got an enormous country and, beside it,
+ * photographs that were exactly as small as they had always been. The room a
+ * taller sheet buys should go to the cards, which is the thing that was too
+ * small to begin with.
+ *
+ * So the map shrinks, gently, and the cards take everything else. Linear in H,
+ * which matters: the browser interpolates k between frames, and a linear
+ * policy is reproduced by that interpolation exactly rather than approximately.
+ * 1.00 at the base frame, so the wide layout is untouched. */
+const MAP_SHRINK = 0.82;   // of its base size, at the tallest frame
+const mapK = H => 1 - (1 - MAP_SHRINK) *
+                  (H - BASE_H) / (FRAME_HEIGHTS[FRAME_HEIGHTS.length - 1] - BASE_H);
+
+function frameXform(bounds, H) {
+  const [x0, y0, x1, y1] = bounds;
+  const k = mapK(H);
+  return {k, tx: SHEET_W / 2 - k * (x0 + x1) / 2,
+             ty: H / 2 - k * (y0 + y1) / 2};
+}
+
+const r1 = v => Math.round(v * 10) / 10;
+
+function xformPath(d, t) {
+  return d.replace(/(-?[\d.]+),(-?[\d.]+)/g,
+    (_, a, b) => r1(+a * t.k + t.tx) + ',' + r1(+b * t.k + t.ty));
+}
+
+// The whole solve, so a frame can run it without duplicating the sequence.
+// Lifted verbatim out of finish(); the base sheet now calls it too, which is
+// what keeps every frame solved identically.
+/* Solve the same region at every frame height.
+ *
+ * Each frame is solved from scratch rather than nudged out of the one before
+ * it. Seeding looked cheaper and is worse: a layout scaled up by 1.8 has its
+ * cards spread 1.8 times as far from the map, most of them straight into the
+ * side of the sheet, and relaxation spends its whole budget pulling them back
+ * in rather than finding the room overhead. Solving cold lets the sweep put
+ * cards above their pins, which is where they read best and where the new
+ * ground actually is.
+ *
+ * The risk of solving cold is that untangling reassigns which card belongs to
+ * which pin between two frames, and the browser then slides two photographs
+ * through each other on the way. Reported below, per frame, so it is visible
+ * rather than discovered. */
+function buildFrames(key, basePath, baseGroups) {
+  const bounds = pathBounds(basePath);
+  const frames = [];
+  let prev = null;
+  for (const H of FRAME_HEIGHTS) {
+    SHEET_H = H;
+    const t = frameXform(bounds, H);
+    // Room for a longer string, in proportion to the sheet rather than to the
+    // map — the map is shrinking now, and the cards have further to go.
+    LEAD_CAP = LEAD_MAX * Math.sqrt(H / BASE_H);
+    SCALE_CAP = MAX_SCALE * Math.sqrt(H / BASE_H);
+    const keepout = landField(H === BASE_H ? basePath : xformPath(basePath, t),
+                              COAST_MARGIN);
+    const scale = scaleFor(baseGroups.length, 1 - keepout.coverage);
+    BOX = boxOf(scale);
+
+    const gs = baseGroups.map(g => ({
+      key: g.key,
+      ids: g.ids.slice(),
+      pin: [g.pin[0] * t.k + t.tx, g.pin[1] * t.k + t.ty],
+      // An override holds ONLY on the base frame. There it means what it has
+      // always meant: put this card exactly here and let the solver work
+      // around it. On the frames above, it is inherited as a starting position
+      // and then let go.
+      //
+      // Holding it at every height was the obvious reading and the wrong one.
+      // A fixed card is fixed: the solver may not move it, so as the sheet
+      // grew and every other photograph drifted outward into the new ground,
+      // the one card that had been told where to go was the only one standing
+      // still. An instruction about where a card should sit on the wide layout
+      // should not also be an instruction that it may never move again.
+      fix: (frames.length === 0) ? g.fix : undefined,
+    }));
+    if (!frames.length) {
+      solve(gs, scale, keepout);
+    } else {
+      // Carry the previous frame's answer across and let it settle. The
+      // positions arrive in the new frame's coordinates by the same
+      // similarity that moves the map, so a card keeps its place relative to
+      // the country; relaxation then resolves whatever that breaks — cards
+      // now too large for the gaps they were in, and cards pushed past the
+      // edge of a sheet that grew taller rather than wider.
+      //
+      // No untangling. Untangling is what decides WHICH card hangs from which
+      // pin, and a frame that answers that differently from its neighbour is a
+      // frame the browser cannot interpolate: two photographs would swap by
+      // sliding through one another.
+      const p = prev.t;
+      gs.forEach((g, i) => {
+        const c = prev.cards[i];
+        g.card = [(c[0] - p.tx) / p.k * t.k + t.tx,
+                  (c[1] - p.ty) / p.k * t.k + t.ty];
+      });
+      relax(gs, keepout);
+    }
+    prev = {t, cards: gs.map(g => g.card.slice())};
+
+    const byKey = Object.fromEntries(gs.map(g => [g.key, g]));
+    for (const [a, c] of (SWAPS[key] || [])) {
+      const tmp = byKey[a].card; byKey[a].card = byKey[c].card; byKey[c].card = tmp;
+    }
+
+    const cards = {};
+    for (const g of gs) g.ids.forEach((id, i) => {
+      cards[id] = [r1(g.card[0] + STACK_DX * scale * i),
+                   r1(g.card[1] + STACK_DY * scale * i)];
+    });
+
+    frames.push({
+      h: H,
+      k: Math.round(t.k * 100000) / 100000,
+      cw: Math.round(CARD_W * scale / SHEET_W * 1000) / 10,
+      g: Object.fromEntries(gs.map(g => [g.key, [r1(g.card[0]), r1(g.card[1])]])),
+      c: cards,
+      _gs: gs,
+    });
+  }
+  SHEET_H = BASE_H;
+  LEAD_CAP = LEAD_MAX;
+  SCALE_CAP = MAX_SCALE;
+
+  // ── continuity report ──
+  // How far each card travels between one frame and the next, measured in the
+  // map's own units so the frames are comparable. A card that hops the width
+  // of the sheet has been reassigned, not moved.
+  for (let i = 1; i < frames.length; i++) {
+    const a = frames[i - 1], b = frames[i];
+    const ta = frameXform(bounds, a.h), tb = frameXform(bounds, b.h);
+    let worst = 0, who = '';
+    for (const g of a._gs) {
+      const pa = a.g[g.key], pb = b.g[g.key];
+      const ua = [(pa[0] - ta.tx) / ta.k, (pa[1] - ta.ty) / ta.k];
+      const ub = [(pb[0] - tb.tx) / tb.k, (pb[1] - tb.ty) / tb.k];
+      const d = Math.hypot(ub[0] - ua[0], ub[1] - ua[1]);
+      if (d > worst) { worst = d; who = g.key; }
+    }
+    console.log(`  frame ${String(a.h).padStart(4)} -> ${String(b.h).padStart(4)}` +
+                `   cards ${a.cw}% -> ${b.cw}%` +
+                `   largest move ${worst.toFixed(0)} map units (${who})`);
+  }
+
+  // Each frame ships on its own, so each frame has to be sound on its own.
+  for (const f of frames) {
+    SHEET_H = f.h;
+    const t = frameXform(bounds, f.h);
+    const land = landField(f.h === BASE_H ? basePath : xformPath(basePath, t), 0);
+    const sc = f.cw / 100 * SHEET_W / CARD_W;
+    BOX = boxOf(sc);
+    const cw = CARD_W * sc, ch = CARD_H * sc;
+    const cs = f._gs.map(g => f.g[g.key]);
+    let over = 0, off = 0, far = 0, onLand = 0, cross = 0;
+    for (let i = 0; i < cs.length; i++) {
+      onLand += land.under(cs[i], BOX.w, BOX.h);
+      if (outOfBounds(cs[i]) > 0.5) off++;
+      const pin = [f._gs[i].pin[0] * t.k / t.k, 0];   // placeholder, see below
+      for (let j = i + 1; j < cs.length; j++)
+        over = Math.max(over, Math.max(0, cw - Math.abs(cs[i][0] - cs[j][0])) *
+                              Math.max(0, ch - Math.abs(cs[i][1] - cs[j][1])));
+    }
+    const pins = f._gs.map(g => [g.pin[0], g.pin[1]]);
+    for (let i = 0; i < cs.length; i++) {
+      const d = Math.hypot(cs[i][0] - pins[i][0], cs[i][1] - pins[i][1]);
+      if (d > LEAD_MAX * t.k + 1) far++;
+      for (let j = i + 1; j < cs.length; j++)
+        if (segmentsCross(pins[i], cs[i], pins[j], cs[j])) cross++;
+    }
+    console.log(`  h ${String(f.h).padStart(4)}  map x${t.k.toFixed(2)}` +
+                `  overlap ${over.toFixed(0)}px²  off-sheet ${off}` +
+                `  crossings ${cross}` +
+                `  on land ${(100 * onLand / (cs.length * BOX.w * BOX.h)).toFixed(1)}%`);
+  }
+  frames.forEach(f => { delete f._gs; });
+
+  // The report loop above walks SHEET_H up the ladder to measure each frame.
+  // Put it back. Leaving it at 1750 fitted every region built after this one
+  // to a sheet two and a half times too tall, which showed up as silhouettes
+  // reported at 1542 units high inside a 512-unit box.
+  SHEET_H = BASE_H;
+  BOX = boxOf(1);
+
+  return {fit: bounds.map(r1), pad: [FIT_X, FIT_Y], frames};
+}
+
+function solve(groups, scale, keepout) {
+  place(groups, scale, keepout);
+  relax(groups, keepout);
+  let bestCost = tangle(groups);
+  let bestCards = groups.map(g => g.card.slice());
+  for (let round = 0; round < 10; round++) {
+    untangle(groups, 1.35);
+    relax(groups, keepout);
+    const now = tangle(groups);
+    if (now < bestCost - 1e-9) {
+      bestCost = now;
+      bestCards = groups.map(g => g.card.slice());
+    }
+  }
+  groups.forEach((g, i) => { g.card = bestCards[i]; });
+  untangle(groups, 1);
+  relax(groups, keepout);
+}
+
 // The border mesh is open lines, not closed rings, so it needs its own sink.
 function lineSink() {
   let out = [], run = [];
@@ -575,12 +832,19 @@ const boxOf = scale => ({
   h: CARD_H * scale * Math.cos(rad) + CARD_W * scale * Math.sin(rad) + PAD,
 });
 
+// MAX_SCALE is a ceiling on the base sheet, where it is the right one — a card
+// larger than this on a 1.94:1 frame is a photograph competing with the map.
+// A tall frame is a different proposition: it has half as much country and
+// three times as much sea, and holding the cards at the base ceiling there is
+// what left them looking tiny. The ceiling rises with the room.
+let SCALE_CAP = MAX_SCALE;
+
 function scaleFor(n, seaFraction) {
   if (!n) return 1;
   const full = boxOf(1);
   const sea = SHEET_W * SHEET_H * seaFraction;
   const s = Math.sqrt(TARGET_FILL * sea / (n * full.w * full.h));
-  return Math.max(MIN_SCALE, Math.min(MAX_SCALE, Math.round(s * 100) / 100));
+  return Math.max(MIN_SCALE, Math.min(SCALE_CAP, Math.round(s * 100) / 100));
 }
 
 let BOX = boxOf(1);   // set per sheet before placing
@@ -664,6 +928,11 @@ function place(groups, scale, land) {
  * exchange that would have fixed them needed a 508-unit string — but after the
  * positions were allowed to settle around the new assignment, the same
  * exchange needed far less. */
+// How far a card may drift from its pin. A distance in map terms, so on a
+// frame whose map is drawn twice as large it is twice as long — left fixed,
+// it quietly reeled the cards back onto the country as the sheet grew.
+let LEAD_CAP = LEAD_MAX;
+
 function relax(groups, land) {
   for (let iter = 0; iter < 900; iter++) {
     let moved = 0;
@@ -750,9 +1019,9 @@ function relax(groups, land) {
       if (g.fix) continue;
       const dx = g.card[0] - g.pin[0], dy = g.card[1] - g.pin[1];
       const d = Math.hypot(dx, dy);
-      if (d > LEAD_MAX) {
-        g.card[0] = g.pin[0] + dx / d * LEAD_MAX;
-        g.card[1] = g.pin[1] + dy / d * LEAD_MAX;
+      if (d > LEAD_CAP) {
+        g.card[0] = g.pin[0] + dx / d * LEAD_CAP;
+        g.card[1] = g.pin[1] + dy / d * LEAD_CAP;
       }
       g.card[0] = Math.min(SHEET_W - BOX.w / 2, Math.max(BOX.w / 2, g.card[0]));
       g.card[1] = Math.min(SHEET_H - BOX.h / 2, Math.max(BOX.h / 2, g.card[1]));
@@ -825,7 +1094,7 @@ for (const key of Object.keys(REGIONS)) {
     ? geoConicConformal().rotate([-lon0, 0])
         .parallels([s0 + (n0 - s0) / 6, n0 - (n0 - s0) / 6]).center([0, lat0])
     : geoTransverseMercator().rotate([-lon0, 0]).center([0, lat0]);
-  proj.fitExtent(FIT, geom);
+  proj.fitExtent(fitBox(), geom);
 
   const s = sink(MIN_RING);
   geoPath(proj, s)(geom);
@@ -877,27 +1146,9 @@ function finish(key, r, photos, path, borders, project, panels, extra) {
   place(groups, scale, keepout);
   relax(groups, keepout);
   const before = tangle(groups);
-
-  // Alternate the two passes, and keep the best sheet any round produced
-  // rather than whichever one the last round happened to leave. Loosening the
-  // reach test lets untangling pass through states the relaxation then tidies
-  // up, but it also means a round can come out worse than the one before it —
-  // so the result is remembered, not assumed to improve monotonically.
-  let bestCost = tangle(groups);
-  let bestCards = groups.map(g => g.card.slice());
-  for (let round = 0; round < 10; round++) {
-    untangle(groups, 1.35);
-    relax(groups, keepout);
-    const now = tangle(groups);
-    if (now < bestCost - 1e-9) {
-      bestCost = now;
-      bestCards = groups.map(g => g.card.slice());
-    }
-  }
-  groups.forEach((g, i) => { g.card = bestCards[i]; });
-  // Last word goes to a strict pass, so nothing ships with an over-long string.
-  untangle(groups, 1);
-  relax(groups, keepout);
+  // Alternating untangle and relax, best round kept — see solve(), which the
+  // extra frames run as well so that every frame is solved the same way.
+  solve(groups, scale, keepout);
 
   // Hand exchanges, applied after everything else. Exchanging two cards is a
   // permutation of positions the solver already chose, so overlap, land cover
@@ -998,6 +1249,12 @@ function finish(key, r, photos, path, borders, project, panels, extra) {
   if (worst > 0.5 || off || far) {
     console.error('  *** placement did not fully resolve ***');
     process.exitCode = 1;
+  }
+
+  // Extra frames last, so everything above — including the report — describes
+  // the base sheet exactly as it always did.
+  if (MULTIFRAME.has(key) && !panels && groups.length) {
+    Object.assign(sheets[key], buildFrames(key, path, groups));
   }
 }
 

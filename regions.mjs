@@ -99,16 +99,39 @@ export const REGIONS = {
                     box: [28.62, 29.36, 40.85, 41.30]},
                  ]},
 
-  baltics:      {label: 'the baltics',
-                 countries: ['Lithuania', 'Latvia', 'Estonia']},
+  // Finland belongs here rather than with Scandinavia: Estonian and Finnish
+  // are the same branch, and the Gulf between Tallinn and Helsinki is eighty
+  // kilometres. Lithuania stays — it is not Finnic, but leaving a hole in the
+  // middle of the eastern Baltic would say something the map does not mean.
+  balticfinnic: {label: 'baltic finnic',
+                 countries: ['Lithuania', 'Latvia', 'Estonia', 'Finland']},
 
   caucasus:     {label: 'the caucasus',
                  countries: ['Armenia', 'Georgia', 'Azerbaijan']},
 
+  /* Panelled, like Greece & Turkey, but with one window rather than two.
+   *
+   * Everything shot here is on the Cape Peninsula, within thirty kilometres of
+   * the city, and a sheet of the whole Cape put all six on one pin. Trimming
+   * to the peninsula separates them — but a window this small cannot be drawn
+   * from the 50m coastline the ordinary sheets use, which renders sixty
+   * kilometres of shore as four vertices. A panel gets the 10m data.
+   *
+   * The window is deliberately taller than the frame it sits in: the
+   * projection is fitted to the WINDOW, so a portrait box is drawn at the full
+   * height of the panel and centred, which is what makes the peninsula large.
+   * It reaches to Cape Point, past the southernmost photograph, because the
+   * shape is the recognisable thing and stopping at Boulders would cut it off.
+   *
+   * `countries` and `clip` still drive the world map, where South Africa is
+   * highlighted whole. The trim exists only one level down. */
   southafrica:  {label: 'south africa',
                  countries: ['South Africa'],
                  clip: [10, 34, -36, -20],                 // drops Prince Edward Is.
-                 sheetClip: [17, 21, -35.5, -32.5]},       // the Cape
+                 panels: [
+                   {label: 'cape town', country: 'South Africa',
+                    box: [18.25, 18.70, -34.40, -33.80]},
+                 ]},
 
   // Been, nothing shot. Kept in the data so the third state has something to
   // show; delete this entry if you would rather the map only carried film.

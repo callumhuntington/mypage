@@ -47,7 +47,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="css/lightbox.css">
-<link rel="stylesheet" href="css/style.css?v=40">
+<link rel="stylesheet" href="css/style.css?v=44">
 <style>
 /* ── the atlas ──
    Scoped to this page, as the photo grid was. Three new colours; everything
@@ -125,8 +125,19 @@
    of the MAP rather than of the viewport. They then hold their proportions
    whatever the window does, and a region whose cards are smaller gets
    proportionally smaller type without a second variable to keep in step. */
+/* Measured by atlas.js to find out how much height the sheet has been given.
+   Absolute, so it is not a flex item and moves nothing. */
+.fit-probe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: var(--free-h);
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .sheet-frame {
-  --free-h: calc(100dvh - var(--chrome-region));
   container-type: inline-size;
 }
 
@@ -212,7 +223,31 @@
   width: 100%;
   margin: 1.5rem auto 0;
   padding: 0;
+  /* A margin either side that grows as the window narrows, so the names wrap
+     sooner and take more rows rather than sitting in two lines with a page of
+     empty ground beneath them. It has to run BACKWARDS against the viewport —
+     the wide layout is already right and wants no inset at all — which is what
+     the subtraction does: 300px less 24vw, floored at nothing once the window
+     is wide enough, and capped at 14% so a phone is not left with a gutter
+     wider than the words.
+
+     Roughly: nothing above ~1250px, ~70px each side at 950, ~90px at 730,
+     and the percentage cap taking over below about 650. */
+  padding-inline: min(14%, max(0px, 300px - 24vw));
   list-style: none;
+
+  /* Deliberately NOT --size-body. The shared scale is mostly vw, which is
+     right for prose — a narrow window gets shorter lines and smaller type. The
+     index wants the opposite: it is a fixed set of fourteen names with a whole
+     page under it, so shrinking with the viewport left a widening band of
+     empty ground below. Flat 1rem to about 1300px, which is the size it
+     already had at that width, then free to grow on a large monitor.
+
+     This is the FLOOR, not the final word. fitIndex() in atlas.js measures the
+     height actually left over and raises the size from here until the index
+     fills it — which is why the declaration lives on the list rather than on
+     the links, so one inline size on the parent moves the whole thing. */
+  font-size: clamp(1rem, 0.55rem + 0.55vw, 1.4rem);
 }
 
 .region-link {
@@ -221,7 +256,7 @@
   gap: 0.45em;
   font-family: var(--font-body);
   font-weight: var(--weight-body);
-  font-size: var(--size-body);
+  font-size: inherit;      /* the list decides — see .region-index above */
   color: var(--ink);
   text-decoration: none;
   padding: 0.1em 0;
@@ -233,7 +268,7 @@
 .region-link.is-empty { color: var(--atlas-dim); }
 
 .region-n {
-  font-size: var(--size-caption);
+  font-size: 0.78em;   /* em, so it tracks the name it belongs to */
   font-style: italic;
   color: var(--atlas-dim);
 }
@@ -283,7 +318,31 @@
   white-space: nowrap;
 }
 
-.region-stage { position: relative; }
+/* The red box holds the height set aside for the sheet, whether or not the
+   drawing needs all of it. On a wide window it makes no difference: the height
+   runs out first, the frame takes all of it, and the box fits the drawing
+   exactly as before. Narrow the window and the drawing becomes width-limited
+   instead — 1.94:1 against a box that is now much taller — and rather than the
+   frame collapsing to a letterbox with a page of empty ground beneath it, the
+   window keeps its height and the sheet sits in the middle of it.
+
+   The shell and the reveal have to be ADDED to the stated height, not left to
+   come out of it. The box is border-box, so a bare min-height of --free-h
+   describes the outside of the red border; but when the height binds the
+   frame takes the whole of --free-h INSIDE it, and the box grows to
+   --free-h + 24 to hold it. The two cases then disagree by exactly those
+   24px, which is the bottom border stepping up as the window narrows.
+
+   --free-h moves up here from .sheet-frame so both can read it — custom
+   properties inherit, so the frame still sizes itself from the same number. */
+.region-stage {
+  position: relative;
+  --free-h: calc(100dvh - var(--chrome-region));
+  min-height: calc(var(--free-h) + 2 * (var(--shell) + var(--reveal)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 #atlas-world { display: flex; flex-direction: column; }
 
@@ -616,20 +675,23 @@ main { padding-bottom: var(--atlas-gap); }
 .lb-nav a.lb-next:hover { opacity: 1; }
 
 /* ── small screens ──
+   800px, not 600. Half a laptop screen: below it the sheet is narrow enough
+   that a photograph pinned to the map is smaller than a postage stamp, and a
+   two-column grid of them is simply the better reading of the same set. It
+   also keeps the frame ladder away from its extreme end, where the cards have
+   the furthest to travel between one solved frame and the next.
+
    No hover, and no useful target either, so both maps stop being controls and
    become pictures. The index becomes the navigation and the cards become the
    grid; the drawings stay, because the whole idea of the page is WHERE. */
-@media (max-width: 600px) {
-  /* The map stays — but as a picture, not a control. A 17px country is not a
-     tappable target and there is no hover to label it, so the index below
-     remains the whole navigation; this is here to say WHERE, which a column
-     of fourteen names cannot. Nothing under the finger reacts, so nothing
-     invites a tap that would do nothing. */
-  .atlas-region { pointer-events: none; cursor: default; }
-
-  /* Focusing a region link still calls highlight(), which would flash a
-     leader and a label across the map on the way to opening it. */
-  .atlas-hover { display: none; }
+@media (max-width: 800px) {
+  /* The map is a control here too. It was briefly not: the reasoning was that
+     a country a few pixels wide is a poor tap target and there is no hover to
+     label it, so the index below should be the whole navigation. Both halves
+     of that are answered rather than avoided — a touchstart handler in
+     atlas.js lights the country and shows its name on press, the way a cursor
+     does, and the index is still underneath for anything too small to hit.
+     The label comes back with it, for the same reason. */
 
   /* No height fitting on a phone: the page scrolls, as it should. */
   .sheet-frame,
@@ -664,12 +726,18 @@ main { padding-bottom: var(--atlas-gap); }
 
   .region-note { font-size: var(--size-caption); }
 
+  /* Rows, as on the wide layout — the base rule already wraps, and forcing a
+     single column here just made fourteen names into a scroll. Two or three
+     per line fits, and the whole index is visible under the map without
+     moving. Tighter gutters than the wide version because there is less room
+     between them, and a little more height on each link so a name is still a
+     comfortable thing to hit with a thumb. */
   .region-index {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75em;
-    margin-top: 1.25rem;
+    gap: 0.35em 1.1em;
+    margin-top: 1.1rem;
   }
+
+  .region-link { padding: 0.3em 0; }
 
   /* The whole construction stays — pin, string, and something at the end of
      it. Only the something changes: a numbered disc where the polaroid was,
@@ -765,6 +833,14 @@ main { padding-bottom: var(--atlas-gap); }
     gap: 10px;
   }
 
+  /* Below the breakpoint the stage holds a map AND a grid of cards, so it is
+     as tall as its contents and the page scrolls. Reserving a screen of height
+     for it would open a gap under the last row. */
+  .region-stage {
+    display: block;
+    min-height: 0;
+  }
+
   /* The frame carries an inline aspect-ratio from atlas.js. Here it holds the
      silhouette AND the grid of cards below it, so that ratio no longer
      describes its contents and would squash or stretch them; the ratio moves
@@ -839,10 +915,10 @@ main { padding-bottom: var(--atlas-gap); }
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
 <script src="js/app.js?v=2"></script>
 <script src="js/lightbox.js"></script>
-<script src="data/photos.js?v=14"></script>
-<script src="js/atlas-data.js?v=2"></script>
-<script src="js/atlas-sheets.js?v=17"></script>
-<script src="js/atlas.js?v=16"></script>
+<script src="data/photos.js?v=21"></script>
+<script src="js/atlas-data.js?v=8"></script>
+<script src="js/atlas-sheets.js?v=24"></script>
+<script src="js/atlas.js?v=23"></script>
 <script>
   // Lightbox tuning. disableScrolling is the important one: the overlay is
   // fixed now, so letting the page scroll behind it would be disorienting
