@@ -347,8 +347,9 @@ main { padding-bottom: var(--atlas-gap); }
 
 .sheet-pin-halo { fill: var(--reveal-color); }
 
-/* The numbered pin and the numbered thumbnail. Both are off on a wide screen,
-   where the strings already join a photograph to its dot. */
+/* The numbered disc and the numbered thumbnail — the narrow layout's stand-in
+   for a polaroid. Both are off on a wide screen, where the photograph itself
+   is hanging on the end of the string. */
 .sheet-badge,
 .card-n { display: none; }
 
@@ -670,31 +671,32 @@ main { padding-bottom: var(--atlas-gap); }
     margin-top: 1.25rem;
   }
 
-  /* The silhouette stays too — but the strings go. They point at cards that
-     are no longer beside them: below this breakpoint the cards leave the map
-     and become the grid underneath, so every leader would run to nowhere. A
-     number does the same job across the gap. */
-  .sheet-leader,
-  .sheet-leader-halo,
-  .sheet-pin,
-  .sheet-pin-halo { display: none; }
+  /* The whole construction stays — pin, string, and something at the end of
+     it. Only the something changes: a numbered disc where the polaroid was,
+     since the photograph itself has gone to the grid below. Nothing about the
+     geometry moves, so the sheet reads as the wide version at arm's length.
 
-  .sheet-badge { display: block; }
+     Everything here is in viewBox units, which are about 0.22px each at a
+     390px phone. These are the numbers to nudge. */
+  .sheet-badge { display: block; cursor: pointer; }
 
-  /* Sized in viewBox units, so these are the two numbers to nudge if the
-     badges come out too small to read or too big for a crowded sheet. At a
-     390px phone the sheet renders about 307px wide, which makes 1400 units
-     ≈ 0.22px: r 34 is a disc of about 15px, and 38 gives digits of about 8px.
-     Italy (22 pins) and the British Isles (18) are where it will be tightest —
-     they are the two to look at first. */
+  /* r 46 is a disc of about 20px. The closest two card centres on any sheet
+     are 127 units apart — Milan and Como, about 28px here — so that clears
+     its neighbour with a little air. Much past 60 and they start to touch. */
   .sheet-badge circle { fill: var(--accent); }
 
   .sheet-badge text {
     font-family: var(--font-body);
     font-weight: 500;
-    font-size: 38px;
+    font-size: 50px;      /* ≈ 11px. Two digits still sit inside the disc. */
     fill: var(--reveal-color);
   }
+
+  /* The pin and its string are sized for a sheet a metre wide. Left alone they
+     come out at a 2px dot on the end of a 0.4px hair — present in the DOM,
+     absent from the screen. */
+  .sheet-pin { r: 16; }
+  .sheet-leader { stroke-width: 5; }
 
   .sheet-svg { margin-bottom: 0.9rem; }
 
@@ -808,7 +810,7 @@ main { padding-bottom: var(--atlas-gap); }
 <script src="data/photos.js?v=14"></script>
 <script src="js/atlas-data.js?v=2"></script>
 <script src="js/atlas-sheets.js?v=17"></script>
-<script src="js/atlas.js?v=15"></script>
+<script src="js/atlas.js?v=16"></script>
 <script>
   // Lightbox tuning. disableScrolling is the important one: the overlay is
   // fixed now, so letting the page scroll behind it would be disorienting

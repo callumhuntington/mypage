@@ -246,6 +246,12 @@
         }));
       }
 
+      // Every disc goes in one layer drawn after all the strings, so that a
+      // leader crossing the sheet passes behind the numbers rather than
+      // through them. Inside a mark they would be painted in group order and
+      // a later string would cut across an earlier disc.
+      var badges = svgEl('g', {'class': 'sheet-badges'});
+
       sheet.groups.forEach(function (grp, gi) {
         grp.ids.forEach(function (id) { groupOf[id] = grp.key; });
         // One <g> per group: the halo, the string, and the pin travel together,
@@ -259,32 +265,52 @@
         mark.appendChild(svgEl('circle', {
           'class': 'sheet-pin', cx: grp.pin[0], cy: grp.pin[1], r: 4.6}));
 
-        // The phone's replacement for the string. Off screen above the
-        // breakpoint, where the leader already says which card belongs to
-        // which pin; below it the cards are a grid underneath the map and the
-        // number is the only thing joining the two. Same number on the pin and
-        // on the thumbnail, so a stack of two shares one — which is honest,
-        // they were taken in the same place.
+        // Below the breakpoint the photograph leaves the map for the grid, and
+        // this takes its place at the end of the string. Everything else about
+        // the sheet is unchanged — same pin, same leader, same geometry — so
+        // the phone reads as the wide version with each polaroid swapped for
+        // its number.
         //
-        // Drawn as its own circle rather than by growing .sheet-pin, because
-        // the radius would then have to change with the viewport, and `r` as a
-        // CSS property is newer than the rest of what this page relies on.
-        var badge = svgEl('g', {'class': 'sheet-badge'});
-        badge.appendChild(svgEl('circle', {cx: grp.pin[0], cy: grp.pin[1], r: 34}));
+        // At the CARD position, not the pin: build_sheets.mjs already spaced
+        // those a card apart from one another, whereas the pins are as close
+        // together as the places themselves. That spacing is the whole reason
+        // this works — the closest two card centres on any sheet are Milan and
+        // Como at 127 units, about 28px at phone width, so a 20px disc clears
+        // its neighbour where eighteen discs on the silhouette did not.
+        //
+        // A real <a>, so a tap routes through the hash exactly as a click on a
+        // polaroid does: '#britishisles/edinburgh' is already understood, and
+        // opening, paging and closing the lightbox all behave identically. A
+        // stack of two shares one number and opens on the first of them; the
+        // lightbox's own arrows reach the rest.
+        var badge = svgEl('a', {
+          'class': 'sheet-badge',
+          href: '#' + key + '/' + grp.ids[0],
+          // The grid below holds these same links with their captions attached.
+          // Meeting every photograph twice, the second time as a bare numeral,
+          // is worse than not meeting the map at all — and tabindex -1 keeps a
+          // focusable element from sitting inside an aria-hidden subtree.
+          'aria-hidden': 'true',
+          tabindex: '-1',
+          // app.js reads href^='#' as a scroll target; here it is routing.
+          'data-no-smooth-scroll': '',
+        });
+        badge.appendChild(svgEl('circle', {cx: grp.card[0], cy: grp.card[1], r: 46}));
         var num = svgEl('text', {
-          x: grp.pin[0], y: grp.pin[1],
-          dy: '0.36em',            /* centres the digits on the dot. Reliable
+          x: grp.card[0], y: grp.card[1],
+          dy: '0.36em',            /* centres the digits on the disc. Reliable
                                       everywhere, unlike dominant-baseline. */
           'text-anchor': 'middle',
         });
         num.textContent = gi + 1;
         badge.appendChild(num);
-        mark.appendChild(badge);
+        badges.appendChild(badge);
 
         marks[grp.key] = mark;
         g.appendChild(mark);
       });
 
+      g.appendChild(badges);
       frame.appendChild(g);
     }
 
