@@ -1121,6 +1121,19 @@ function finish(key, r, photos, path, borders, project, panels, extra) {
       const xy = project(p.lon, p.lat);
       if (!xy) throw new Error(
         `${p.id} at ${p.lat}, ${p.lon} falls outside every panel of ${key}`);
+      /* An optional shove, in sheet units, applied after projection.
+       *
+       * Two places can be genuinely distinct and still land on the same dot.
+       * Eindhoven and Nuenen are eight kilometres apart, which on a sheet of
+       * the Low Countries is nine units against a pin four units across — one
+       * blob with two strings coming out of it. `nudge` moves the pin without
+       * touching the coordinate, so photos.js keeps saying where the
+       * photograph was actually taken and the fudge stays where it belongs,
+       * visible and reversible, in the record that needed it.
+       *
+       * Small numbers only. This is a lie about geography and the whole point
+       * of the sheet is that it is not one. */
+      if (p.nudge) { xy[0] += p.nudge[0]; xy[1] += p.nudge[1]; }
       const g = {key: p.group, pin: [Math.round(xy[0] * 10) / 10,
                                      Math.round(xy[1] * 10) / 10], ids: []};
       if (p.card) {

@@ -473,32 +473,32 @@ window.PHOTOS = [
      directions. Nothing else in the atlas is placed that close on a country
      sheet; group them if it looks like a mistake rather than a fact. */
 
-  {id: 'amsterdam',             place: 'Amsterdam',             sub: 'Netherlands', year: null,
+  {id: 'amsterdam',             place: 'Amsterdam',             sub: 'Netherlands', year: 2022,
    region: 'lowcountries', dir: 'lowcountries', group: 'amsterdam',
    lat: 52.3676, lon: 4.9041},
 
-  {id: 'amsterdamcafetsmalle',  place: "Café 't Smalle",        sub: 'Netherlands', year: null,
+  {id: 'amsterdamcafetsmalle',  place: "Café 't Smalle",        sub: 'Netherlands', year: 2026,
    region: 'lowcountries', dir: 'lowcountries', group: 'amsterdam',
    lat: 52.3789, lon: 4.8817},
 
-  {id: 'amsterdamdavies',       place: 'Amsterdam',             sub: 'Netherlands', year: null,
+  {id: 'amsterdamdavies',       place: "Davie's",               sub: 'Netherlands', year: 2026,
    region: 'lowcountries', dir: 'lowcountries', group: 'amsterdam',
-   lat: 52.3676, lon: 4.9041},
+   lat: 52.3757, lon: 4.8815},
 
   // Placed by hand only to get its string out from under the Amsterdam pile:
   // the solver's own answer sent it north-west across the top of the sheet and
   // straight beneath that card, which reads as a string that stops in mid-air.
-  {id: 'denbosch',              place: 'Den Bosch',             sub: 'Netherlands', year: null,
+  {id: 'denbosch',              place: 'Den Bosch',             sub: 'Netherlands', year: 2026,
    region: 'lowcountries', dir: 'lowcountries', group: 'denbosch', card: {angle: -165, lead: 400},
    lat: 51.6978, lon: 5.3037},
 
-  {id: 'eindhoven',             place: 'Eindhoven',             sub: 'Netherlands', year: null,
+  {id: 'eindhoven',             place: 'Eindhoven',             sub: 'Netherlands', year: 2026,
    region: 'lowcountries', dir: 'lowcountries', group: 'eindhoven',
-   lat: 51.4416, lon: 5.4697},
+   lat: 51.4416, lon: 5.4697, nudge: [-13, 7]},
 
-  {id: 'nuenen',                place: 'Nuenen',                sub: 'Netherlands', year: null,
+  {id: 'nuenen',                place: 'Nuenen',                sub: 'Netherlands', year: 2026,
    region: 'lowcountries', dir: 'lowcountries', group: 'nuenen',
-   lat: 51.4700, lon: 5.5500},
+   lat: 51.4700, lon: 5.5500, nudge: [13, -7]},
 
   /* ── baltic finnic ─────────────────────────────────────────────────────── */
 
