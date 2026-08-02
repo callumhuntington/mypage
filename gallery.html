@@ -692,6 +692,38 @@ main { padding-bottom: var(--atlas-gap); }
     fill: var(--reveal-color);
   }
 
+  /* It is a link, so it was arriving with a link's underline — under the
+     numeral, in black, which is neither the palette nor the shape.
+     The hover states are listed because Bootstrap's reboot sets
+     `a:hover { text-decoration: underline }`: specificity (0,1,1) against a
+     bare class's (0,1,0), so a plain .sheet-badge rule loses on hover however
+     late in the file it sits. Matching its pseudo-class settles it. */
+  .sheet-badge,
+  .sheet-badge:hover,
+  .sheet-badge:focus,
+  .sheet-badge:active,
+  .sheet-badge text { text-decoration: none; }
+
+  .sheet-badge:focus { outline: none; }
+
+  /* Pressed: the disc inverts. The ring is not decoration — the card
+     positions sit outside the coastline, so a disc is almost always over the
+     white sea, and a white fill alone would leave the numeral floating with
+     no disc around it at all. The ring keeps the shape while the inside
+     turns white. The string is untouched. */
+  .sheet-badge:hover circle,
+  .sheet-badge:active circle {
+    fill: var(--reveal-color);
+    stroke: var(--accent);
+    stroke-width: 6;
+  }
+
+  .sheet-badge:hover text,
+  .sheet-badge:active text { fill: var(--accent); }
+
+  .sheet-badge circle,
+  .sheet-badge text { transition: fill var(--speed) var(--ease); }
+
   /* The pin and its string are sized for a sheet a metre wide. Left alone they
      come out at a 2px dot on the end of a 0.4px hair — present in the DOM,
      absent from the screen. */

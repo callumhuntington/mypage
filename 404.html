@@ -2,6 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
+<!-- Every path below is relative, exactly as on the other three pages, so this
+     file behaves like its siblings and opens correctly from the Desktop.
+
+     The complication is that GitHub Pages serves this one file for ANY unknown
+     address. At /typo it is a sibling of index.html and relative paths are
+     right; at /some/deep/typo/ they would resolve against that address and the
+     stylesheet, the fonts and all three nav links would 404 in turn. A <base>
+     pins them to the site root and fixes both cases at once — but it cannot be
+     hard-coded, because on file:// a root of / is the top of the hard disk,
+     which is what left this page unstyled the first time round. So it is added
+     only when the page is actually being served over http(s).
+
+     This runs before the parser reaches the <link> tags below, which is the
+     whole point: a base inserted afterwards would not apply to them. -->
+<script>
+  if (location.protocol !== 'file:') {
+    document.head.insertAdjacentHTML('afterbegin', '<base href="/">');
+  }
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
 <meta name="theme-color" content="#f4f1ea">
@@ -9,39 +30,45 @@
 <meta name="robots" content="noindex">
 <title>not found — callum huntington</title>
 
-<!-- EVERY path on this page is root-relative. GitHub Pages serves this file
-     for any unknown address, including /some/deep/path/ — a relative href
-     would then resolve against THAT address, and the stylesheet, the fonts and
-     all three nav links would 404 in turn. This is the one page on the site
-     where the rule has to be different. -->
-<link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
-<link rel="icon" href="/favicon-32.png?v=2" sizes="32x32" type="image/png">
-<link rel="icon" href="/favicon-192.png?v=2" sizes="192x192" type="image/png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+<link rel="icon" href="favicon.svg?v=2" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=2" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-192.png?v=2" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 
-<link rel="preload" href="/fonts/DMSans-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/DMSans-Italic-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/OrbitaTraced.woff2" as="font" type="font/woff2" crossorigin>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZGGQLFW2KZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ZGGQLFW2KZ');
+</script>
+
+<link rel="preload" href="fonts/DMSans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/OrbitaTraced.woff2" as="font" type="font/woff2" crossorigin>
 
 <!-- Third-party stylesheets FIRST. Bootstrap's reboot sets body{font-family},
      and at equal specificity whichever loads last wins — so style.css has to
      come after it or every body rule here is silently discarded. -->
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-<link rel="stylesheet" href="/css/style.css?v=40">
+<link rel="stylesheet" href="css/style.css?v=40">
 </head>
 
 <body>
 <nav aria-label="main">
 <ul class="nav-bar">
-<li class="nav-link"><a href="/index.html">home</a></li>
-<li class="nav-link"><a href="/mathematics.html">mathematics</a></li>
-<li class="nav-link"><a href="/gallery.html">gallery</a></li>
+<li class="nav-link"><a href="index.html">home</a></li>
+<li class="nav-link"><a href="mathematics.html">mathematics</a></li>
+<li class="nav-link"><a href="gallery.html">gallery</a></li>
 </ul>
 </nav>
 
-<div class="gapfillphoto"></div>
-<div class="gapfillphoto"></div>
+<div class="gapfillphoto">
+</div>
+<div class="gapfillphoto">
+</div>
 
 <main>
 <div class="column">
@@ -49,7 +76,11 @@
 <section class="module">
 <h2>not found</h2>
 <p>
-Nothing mapped at this address &mdash; error 404. There is <a href="/gallery.html">an atlas</a> of places that are, some <a href="/mathematics.html">mathematics</a>, or you can go <a href="/index.html">back to the start</a>.
+Nothing mapped at this address &mdash; error 404.
+</p>
+
+<p>
+There is <a href="gallery.html">an atlas</a> of places that are, some <a href="mathematics.html">mathematics</a>, or you can go <a href="index.html">back to the start</a>.
 </p>
 </section>
 
@@ -69,7 +100,7 @@ Nothing mapped at this address &mdash; error 404. There is <a href="/gallery.htm
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
-<script src="/js/app.js?v=2"></script>
+<script src="js/app.js?v=2"></script>
 
 </body>
 </html>
