@@ -210,20 +210,19 @@ picture {
     width: auto;
     height: auto;
 
-    /* A floor, because the maxima have none: on a short window max-height: 100%
-       is whatever the row had left after the masthead and the paragraph, and
-       the portrait was being squeezed down to a stamp.
+    /* No minimum on either axis, and there cannot be one here.
 
-       Capped at the box, though. A bare 250px is a minimum the element will
-       meet whether or not there is room, and when there was not it stopped
-       obeying its slot and was painted straight over the text beneath. min()
-       makes the floor conditional: 250px where the slot can hold it, the slot
-       otherwise. Where the height is indefinite the percentage has nothing to
-       resolve against and the floor lifts entirely, which is the right answer
-       there too — nothing is being squeezed if nothing is bounding it. */
-    min-width: min(250px, 100%);
-    min-height: min(250px, 100%);
+       A replaced element keeps its proportions only while it is free to. Two
+       maxima leave it free: whichever binds first stops the growth and the
+       other is slack. Add a minimum on one axis against a maximum on the
+       other and both must be satisfied at once — a width of at least this and
+       a height of at most that — and the only way to do it is to abandon the
+       aspect ratio. That is the squash: not a small photograph but a stretched
+       one, which is worse.
 
+       If the portrait comes out too small, the height it is given is the thing
+       to change — the masthead, the paragraph, the footer — not a floor under
+       the picture. */
     border-radius: max(0px, calc(var(--radius) - var(--shell) - var(--reveal)));
 
     /* The window as two shadow rings rather than border + padding. Shadows sit
