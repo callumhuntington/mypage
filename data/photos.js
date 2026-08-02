@@ -60,7 +60,7 @@ window.PHOTOS = [
    lat: 45.5480, lon: 13.7302},
 
   {id: 'zagreb',    place: 'Zagreb',    sub: 'Croatia',                year: 2024,
-   region: 'yugoslavia', dir: 'yugoslavia', group: 'zagreb',
+   region: 'yugoslavia', dir: 'yugoslavia', group: 'zagreb', card: {angle: -35, lead: 160},
    lat: 45.8131, lon: 15.9775},
 
   {id: 'subotica',  place: 'Subotica',  sub: 'Serbia',                 year: 2025,
@@ -135,9 +135,6 @@ window.PHOTOS = [
 
   {id: 'bologna',      place: 'Bologna',       sub: 'Emilia-Romagna', year: 2022,
    region: 'italy', dir: 'italy', group: 'bologna',      lat: 44.4949, lon: 11.3426},
-
-  {id: 'portofino',    place: 'Portofino',     sub: 'Liguria', year: 2019,
-   region: 'italy', dir: 'italy', group: 'portofino',    lat: 44.3033, lon:  9.2097},
 
   {id: 'pisa',         place: 'Pisa',          sub: 'Tuscany', year: 2022,
    region: 'italy', dir: 'italy', group: 'pisa',         lat: 43.7228, lon: 10.4017},
@@ -426,5 +423,172 @@ window.PHOTOS = [
   {id: 'istbosphorus',        place: 'The Bosphorus',        sub: 'Turkey', year: 2025,
    region: 'greeceturkey', dir: 'greeceturkey', group: 'bosphorus',
    lat: 41.07480, lon: 29.05595},
+
+  /* ── france ────────────────────────────────────────────────────────────── */
+
+  /* The five Paris frames share a group. At the scale of France the city is a
+     single dot — Sacré-Cœur and Shakespeare and Company are four kilometres
+     apart, which is about a fifth of a card — so five pins would be five
+     strings from the same place with the cards fighting for room around it.
+     One pin, one pile, fanning open on hover. */
+
+  {id: 'pariseiffel',           place: 'The Eiffel Tower',      sub: 'Île-de-France', year: 2020,
+   region: 'france', dir: 'france', group: 'paris', card: {angle: -9, lead: 344},
+   lat: 48.8584, lon: 2.2945},
+
+  {id: 'parismoulingalette',    place: 'Moulin de la Galette',  sub: 'Île-de-France', year: 2020,
+   region: 'france', dir: 'france', group: 'paris',
+   lat: 48.8873, lon: 2.3374},
+
+  {id: 'parissacrecoeur',       place: 'Sacré-Cœur',            sub: 'Île-de-France', year: 2024,
+   region: 'france', dir: 'france', group: 'paris',
+   lat: 48.8867, lon: 2.3431},
+
+  {id: 'paris2ndarr',           place: 'The 2nd Arrondissement', sub: 'Île-de-France', year: 2024,
+   region: 'france', dir: 'france', group: 'paris',
+   lat: 48.8686, lon: 2.3412},
+
+  {id: 'parisshakespeareco',    place: 'Shakespeare and Company', sub: 'Île-de-France', year: 2024,
+   region: 'france', dir: 'france', group: 'paris',
+   lat: 48.8526, lon: 2.3471},
+
+  // Pape Clément is in Pessac, on the edge of Bordeaux — one pin between them.
+  {id: 'bordeaux',              place: 'Bordeaux',              sub: 'Nouvelle-Aquitaine', year: 2021,
+   region: 'france', dir: 'france', group: 'bordeaux', card: {angle: -156, lead: 264},
+   lat: 44.8378, lon: -0.5792},
+
+  {id: 'bordeauxchateaupapeclement', place: 'Château Pape Clément', sub: 'Nouvelle-Aquitaine', year: 2021,
+   region: 'france', dir: 'france', group: 'bordeaux',
+   lat: 44.8060, lon: -0.6339},
+
+  {id: 'hendaye',               place: 'Hendaye',               sub: 'Nouvelle-Aquitaine', year: 2021,
+   region: 'france', dir: 'france', group: 'hendaye', card: {angle: 155, lead: 195},
+   lat: 43.3591, lon: -1.7746},
+
+  /* ── the low countries ─────────────────────────────────────────────────── */
+
+  /* Eindhoven and Nuenen are eight kilometres apart, which on a sheet of the
+     Low Countries is nine units — a card is a hundred and fifty. Their two
+     pins will read as one dot with two strings leaving it in different
+     directions. Nothing else in the atlas is placed that close on a country
+     sheet; group them if it looks like a mistake rather than a fact. */
+
+  {id: 'amsterdam',             place: 'Amsterdam',             sub: 'Netherlands', year: null,
+   region: 'lowcountries', dir: 'lowcountries', group: 'amsterdam',
+   lat: 52.3676, lon: 4.9041},
+
+  {id: 'amsterdamcafetsmalle',  place: "Café 't Smalle",        sub: 'Netherlands', year: null,
+   region: 'lowcountries', dir: 'lowcountries', group: 'amsterdam',
+   lat: 52.3789, lon: 4.8817},
+
+  {id: 'amsterdamdavies',       place: 'Amsterdam',             sub: 'Netherlands', year: null,
+   region: 'lowcountries', dir: 'lowcountries', group: 'amsterdam',
+   lat: 52.3676, lon: 4.9041},
+
+  // Placed by hand only to get its string out from under the Amsterdam pile:
+  // the solver's own answer sent it north-west across the top of the sheet and
+  // straight beneath that card, which reads as a string that stops in mid-air.
+  {id: 'denbosch',              place: 'Den Bosch',             sub: 'Netherlands', year: null,
+   region: 'lowcountries', dir: 'lowcountries', group: 'denbosch', card: {angle: -165, lead: 400},
+   lat: 51.6978, lon: 5.3037},
+
+  {id: 'eindhoven',             place: 'Eindhoven',             sub: 'Netherlands', year: null,
+   region: 'lowcountries', dir: 'lowcountries', group: 'eindhoven',
+   lat: 51.4416, lon: 5.4697},
+
+  {id: 'nuenen',                place: 'Nuenen',                sub: 'Netherlands', year: null,
+   region: 'lowcountries', dir: 'lowcountries', group: 'nuenen',
+   lat: 51.4700, lon: 5.5500},
+
+  /* ── baltic finnic ─────────────────────────────────────────────────────── */
+
+  {id: 'helsinki',              place: 'Helsinki',              sub: 'Finland', year: 2019,
+   region: 'balticfinnic', dir: 'balticfinnic', group: 'helsinki',
+   lat: 60.1699, lon: 24.9384},
+
+  {id: 'helsinkikatajanokka',   place: 'Katajanokka',           sub: 'Finland', year: 2019,
+   region: 'balticfinnic', dir: 'balticfinnic', group: 'helsinki',
+   lat: 60.1673, lon: 24.9686},
+
+  {id: 'tallinn',               place: 'Tallinn',               sub: 'Estonia', year: 2019,
+   region: 'balticfinnic', dir: 'balticfinnic', group: 'tallinn',
+   lat: 59.4370, lon: 24.7536},
+
+  {id: 'tallinncathedral',      place: 'Alexander Nevsky Cathedral', sub: 'Estonia', year: 2019,
+   region: 'balticfinnic', dir: 'balticfinnic', group: 'tallinn',
+   lat: 59.4358, lon: 24.7397},
+
+  {id: 'riga',                  place: 'Riga',                  sub: 'Latvia', year: 2019,
+   region: 'balticfinnic', dir: 'balticfinnic', group: 'riga',
+   lat: 56.9496, lon: 24.1052},
+
+  {id: 'rigamarket',            place: 'Riga Central Market',   sub: 'Latvia', year: 2019,
+   region: 'balticfinnic', dir: 'balticfinnic', group: 'riga',
+   lat: 56.9436, lon: 24.1147},
+
+  /* ── the caucasus ──────────────────────────────────────────────────────── */
+
+  {id: 'yerevan',               place: 'Yerevan',               sub: 'Armenia', year: 2026,
+   region: 'caucasus', dir: 'caucasus', group: 'yerevan',
+   lat: 40.1792, lon: 44.4991},
+
+  {id: 'yerevankissingbuildings', place: 'The Kissing Buildings', sub: 'Armenia', year: 2026,
+   region: 'caucasus', dir: 'caucasus', group: 'yerevan',
+   lat: 40.1830, lon: 44.5150},
+
+  {id: 'yerevanabandonedtrain', place: 'The Abandoned Train',   sub: 'Armenia', year: 2026,
+   region: 'caucasus', dir: 'caucasus', group: 'yerevan',
+   lat: 40.1650, lon: 44.4900},
+
+  /* ── south africa ──────────────────────────────────────────────────────── */
+
+  /* The sheet is now the peninsula rather than the whole Cape, so each of
+     these gets its own pin. At this scale a kilometre is about eight sheet
+     units and a card is 150 wide, so the three in the city sit far closer
+     together than a single card and the solver has to fan their strings out.
+     The two photographs of Table Mountain are the exception: they are the same
+     place, so they share a pin and stack. */
+
+  {id: 'capetown',              place: 'Cape Town',             sub: 'Western Cape', year: 2025,
+   region: 'southafrica', dir: 'southafrica', group: 'capetown',
+   lat: -33.9249, lon: 18.4241},
+
+  {id: 'tablemountain',         place: 'Table Mountain',        sub: 'Western Cape', year: 2025,
+   region: 'southafrica', dir: 'southafrica', group: 'tablemountain',
+   lat: -33.9628, lon: 18.4098},
+
+  {id: 'tablemountain2',        place: 'Table Mountain',        sub: 'Western Cape', year: 2025,
+   region: 'southafrica', dir: 'southafrica', group: 'tablemountain',
+   lat: -33.9628, lon: 18.4098},
+
+  {id: 'kirstenbosch',          place: 'Kirstenbosch',          sub: 'Western Cape', year: 2025,
+   region: 'southafrica', dir: 'southafrica', group: 'kirstenbosch',
+   lat: -33.9880, lon: 18.4326},
+
+  {id: 'fishhoek',              place: 'Fish Hoek',             sub: 'Western Cape', year: 2025,
+   region: 'southafrica', dir: 'southafrica', group: 'fishhoek',
+   lat: -34.1361, lon: 18.4266},
+
+  {id: 'bouldersbeach',         place: 'Boulders Beach',        sub: 'Western Cape', year: 2025,
+   region: 'southafrica', dir: 'southafrica', group: 'bouldersbeach',
+   lat: -34.1974, lon: 18.4514},
+
+  /* ── australia & new zealand ───────────────────────────────────────────── */
+
+  {id: 'sydneyoperahouse',      place: 'The Opera House',       sub: 'Australia', year: 2017,
+   region: 'oceania', dir: 'oceania', group: 'sydney',
+   lat: -33.8568, lon: 151.2153},
+
+  {id: 'sydneywildlifepark',    place: 'Wildlife Park',         sub: 'Australia', year: 2017,
+   region: 'oceania', dir: 'oceania', group: 'sydney',
+   lat: -33.8697, lon: 151.2020},
+
+  {id: 'tongariro',             place: 'Tongariro',             sub: 'New Zealand', year: 2017,
+   region: 'oceania', dir: 'oceania', group: 'tongariro',
+   lat: -39.1379, lon: 175.6519},
+
+  {id: 'wellington',            place: 'Wellington',            sub: 'New Zealand', year: 2017,
+   region: 'oceania', dir: 'oceania', group: 'wellington',
+   lat: -41.2866, lon: 174.7756},
 
 ];

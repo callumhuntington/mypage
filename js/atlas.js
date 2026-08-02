@@ -23,6 +23,8 @@
   var map   = document.querySelector('.atlas-map');
   var index = document.querySelector('.region-index');
   var world = document.getElementById('atlas-world');
+  var main  = document.querySelector('main');
+  var sheetLayout = null;   // set when a sheet with frames is on screen
   var view  = document.getElementById('atlas-region');
   if (!map || !index || !world || !view) return;
 
@@ -168,6 +170,20 @@
     links[key].addEventListener('focus', function () { highlight(key, true); });
     links[key].addEventListener('blur',  function () { highlight(key, false); });
     paths[key].addEventListener('click', function () { location.hash = key; });
+
+    // A finger cannot hover, so on a phone a country would otherwise go from
+    // untouched to opened with nothing in between — no confirmation that the
+    // right one was hit, which matters when Slovenia is four pixels wide.
+    // touchstart lights it exactly as a cursor would, name label and all, so
+    // the press names what it is about to open. Cleared on release and on
+    // cancel, the latter being what fires when the tap turns out to be the
+    // start of a scroll.
+    paths[key].addEventListener('touchstart', function () {
+      highlight(key, true);
+    }, {passive: true});
+    ['touchend', 'touchcancel'].forEach(function (ev) {
+      paths[key].addEventListener(ev, function () { highlight(key, false); });
+    });
   });
 
   // ── a region sheet ─────────────────────────────────────────────────────────
@@ -182,6 +198,9 @@
     var marks = {};        // group key -> the <g> holding its string and pin
     var groupOf = {};      // photo id  -> group key
     var frame = null;
+    // Everything whose position depends on the frame's proportions, gathered
+    // as it is built so relayout is a walk over these rather than a rebuild.
+    var movable = {frame: null, svg: null, mapG: null, marks: [], piles: []};
 
     if (sheet) {
       frame = document.createElement('div');
@@ -193,12 +212,29 @@
       frame.style.setProperty('--card-w', sheet.cardW);
       frame.style.aspectRatio = sheet.w + ' / ' + sheet.h;
 
+      movable.frame = frame;
+      // A zero-width ruler for --free-h. The height set aside for the sheet is
+      // a calc() of dvh and rem that only CSS can resolve; reading the custom
+      // property gives back the unevaluated expression. Measuring an element
+      // that has been given that height gives back a number.
+      if (sheet.frames) frag.appendChild(document.createElement('div'))
+        .className = 'fit-probe';
       var g = svgEl('svg', {
         'class': 'sheet-svg',
         viewBox: '0 0 ' + sheet.w + ' ' + sheet.h,
         'aria-hidden': 'true',
         focusable: 'false',
       });
+
+      // Everything the projection drew goes in one group. A taller frame is the
+      // same silhouette under a similarity transform, so the whole map moves by
+      // setting one attribute here — and the clip path, being inside the group,
+      // is read in the group's own coordinates and needs no transform of its
+      // own.
+      var mapG = svgEl('g', {'class': 'sheet-map'});
+      g.appendChild(mapG);
+      movable.svg = g;
+      movable.mapG = mapG;
 
       // Internal borders are stroked white and clipped to the silhouette.
       // Clipping does two jobs at once: it hides any border belonging to a
@@ -209,9 +245,9 @@
       var cp = svgEl('clipPath', {id: clipId});
       cp.appendChild(svgEl('path', {d: sheet.path}));
       defs.appendChild(cp);
-      g.appendChild(defs);
+      mapG.appendChild(defs);
 
-      g.appendChild(svgEl('path', {'class': 'sheet-land', d: sheet.path}));
+      mapG.appendChild(svgEl('path', {'class': 'sheet-land', d: sheet.path}));
 
       // A panelled sheet is several city maps side by side. Each gets its name
       // underneath, and a hairline divides them — without it two maps at two
@@ -225,7 +261,7 @@
             // it reads as a divider between two separate ones.
             var x = (r[0] + sheet.panels[i - 1].rect[2]) / 2;
             var over = 54;
-            g.appendChild(svgEl('line', {
+            mapG.appendChild(svgEl('line', {
               'class': 'panel-rule',
               x1: x, y1: r[1] - over, x2: x, y2: r[3] + 30 + over,
             }));
@@ -235,12 +271,12 @@
             x: (r[0] + r[2]) / 2, y: r[3] + 30, 'text-anchor': 'middle',
           });
           t.textContent = pan.label;
-          g.appendChild(t);
+          mapG.appendChild(t);
         });
       }
 
       if (sheet.borders) {
-        g.appendChild(svgEl('path', {
+        mapG.appendChild(svgEl('path', {
           'class': 'sheet-borders', d: sheet.borders,
           'clip-path': 'url(#' + clipId + ')',
         }));
@@ -307,6 +343,14 @@
         badges.appendChild(badge);
 
         marks[grp.key] = mark;
+        // Kept so the frame can be re-laid-out without rebuilding the sheet.
+        movable.marks.push({
+          grp: grp,
+          leaders: [mark.childNodes[0], mark.childNodes[1]],
+          pins: [mark.childNodes[2], mark.childNodes[3]],
+          disc: badge.childNodes[0],
+          num: badge.childNodes[1],
+        });
         g.appendChild(mark);
       });
 
@@ -359,6 +403,7 @@
       if (grp) {
         box.style.setProperty('--x', (grp.card[0] / sheet.w * 100) + '%');
         box.style.setProperty('--y', (grp.card[1] / sheet.h * 100) + '%');
+        movable.piles.push({el: box, grp: grp, cards: []});
       }
 
       var n = pile.length;
@@ -387,6 +432,7 @@
           a.style.setProperty('--fx', step * sheet.cardW * SPREAD);
           a.style.setProperty('--fy', -Math.abs(step) * sheet.cardW * SPREAD * ARC);
           a.style.setProperty('--frot', (step * TILT) + 'deg');
+          movable.piles[movable.piles.length - 1].cards.push({el: a, id: p.id, step: step});
         }
 
         var ph = document.createElement('span');
@@ -446,7 +492,125 @@
     } else {
       frag.appendChild(cards);
     }
+
+    // A sheet with frames can be re-proportioned; one without is finished.
+    sheetLayout = (sheet && sheet.frames) ? makeLayout(sheet, movable) : null;
     return frag;
+  }
+
+  /* ── re-proportioning a sheet ───────────────────────────────────────────────
+   *
+   * build_sheets.mjs solves each region at several frame heights. Between them
+   * the browser interpolates, so the layout follows the window continuously
+   * rather than snapping between fixed shapes.
+   *
+   * Interpolating rather than solving is not a shortcut taken for tidiness.
+   * Italy's solve is 3.8 seconds — a greedy sweep, 900 relaxation passes over
+   * every pair of cards, ten rounds of untangling. A resize has 16ms.
+   *
+   * The MAP is not interpolated. Its transform is the same arithmetic that
+   * d3's fitExtent does, evaluated at the exact height in use, so the
+   * silhouette is precisely where it would be had the sheet been built at that
+   * height. Only the cards are approximated — and they are interpolated in the
+   * map's coordinates, not the sheet's, so a photograph stays put relative to
+   * the country it belongs to while the country grows underneath it. */
+  function makeLayout(sheet, mv) {
+    var fit = sheet.fit;                     // base bounds of the silhouette
+    var cx = (fit[0] + fit[2]) / 2, cy = (fit[1] + fit[3]) / 2;
+    var frames = sheet.frames;
+    var W = sheet.w;
+    var maxAR = W / frames[0].h;             // widest: the layout as built
+    var minAR = W / frames[frames.length - 1].h;
+    var applied = -1;
+
+    // The map is scaled about the middle of the sheet. Its size is a policy in
+    // build_sheets.mjs, not a fit — it shrinks a little as the sheet grows
+    // taller, so that the room a narrow window opens up goes to the
+    // photographs rather than to an ever larger country. That policy is linear
+    // in the frame height, which is why interpolating k reproduces it exactly
+    // rather than approximately.
+    function xform(H, k) {
+      return {k: k, tx: W / 2 - k * cx, ty: H / 2 - k * cy};
+    }
+
+    // A frame's coordinates, expressed relative to its own map.
+    function unmap(p, t) { return [(p[0] - t.tx) / t.k, (p[1] - t.ty) / t.k]; }
+
+    return function layout() {
+      var stage = mv.frame.parentNode;
+      if (!stage) return;
+      var probe = stage.querySelector('.fit-probe');
+      var pad = parseFloat(getComputedStyle(stage).paddingLeft) || 0;
+      var availW = stage.clientWidth - 2 * pad;
+      var availH = probe ? probe.getBoundingClientRect().height : availW / maxAR;
+      if (availW <= 0 || availH <= 0) return;
+
+      // Below the breakpoint the sheet is a map with a grid of cards beneath
+      // it, and the height on offer belongs to the page rather than to the
+      // drawing. Taking it would stretch the silhouette down a scrolling page.
+      // Must stay in step with the media query in gallery.html.
+      var narrow = window.matchMedia &&
+                   window.matchMedia('(max-width: 800px)').matches;
+      var ar = narrow ? maxAR
+                      : Math.max(minAR, Math.min(maxAR, availW / availH));
+      var H = W / ar;
+      if (Math.abs(H - applied) < 0.5) return;   // nothing worth redrawing
+      applied = H;
+
+      // bracketing frames, and where between them this height falls
+      var i = 0;
+      while (i < frames.length - 2 && frames[i + 1].h < H) i++;
+      var A = frames[i], B = frames[i + 1];
+      var u = (H - A.h) / (B.h - A.h);
+      u = Math.max(0, Math.min(1, u));
+
+      var k = A.k + (B.k - A.k) * u;
+      var t = xform(H, k), ta = xform(A.h, A.k), tb = xform(B.h, B.k);
+      var mix = function (pa, pb) {
+        var a = unmap(pa, ta), b = unmap(pb, tb);
+        return [(a[0] + (b[0] - a[0]) * u) * t.k + t.tx,
+                (a[1] + (b[1] - a[1]) * u) * t.k + t.ty];
+      };
+      var cardW = A.cw + (B.cw - A.cw) * u;
+      var u2c = 100 / W;
+
+      mv.frame.style.setProperty('--frame-ar', ar.toFixed(4));
+      mv.frame.style.setProperty('--card-w', cardW);
+      mv.frame.style.aspectRatio = W + ' / ' + H;
+      mv.svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      mv.mapG.setAttribute('transform',
+        'translate(' + t.tx.toFixed(2) + ',' + t.ty.toFixed(2) + ') ' +
+        'scale(' + t.k.toFixed(5) + ')');
+
+      mv.marks.forEach(function (m) {
+        var key = m.grp.key;
+        var pin = [m.grp.pin[0] * t.k + t.tx, m.grp.pin[1] * t.k + t.ty];
+        var c = mix(A.g[key], B.g[key]);
+        m.leaders.forEach(function (l) {
+          l.setAttribute('x1', pin[0]); l.setAttribute('y1', pin[1]);
+          l.setAttribute('x2', c[0]);   l.setAttribute('y2', c[1]);
+        });
+        m.pins.forEach(function (p) {
+          p.setAttribute('cx', pin[0]); p.setAttribute('cy', pin[1]);
+        });
+        m.disc.setAttribute('cx', c[0]); m.disc.setAttribute('cy', c[1]);
+        m.num.setAttribute('x', c[0]);   m.num.setAttribute('y', c[1]);
+      });
+
+      mv.piles.forEach(function (pile) {
+        var c = mix(A.g[pile.grp.key], B.g[pile.grp.key]);
+        pile.el.style.setProperty('--x', (c[0] / W * 100) + '%');
+        pile.el.style.setProperty('--y', (c[1] / H * 100) + '%');
+        pile.cards.forEach(function (card) {
+          var p = mix(A.c[card.id], B.c[card.id]);
+          card.el.style.setProperty('--dx', (p[0] - c[0]) * u2c);
+          card.el.style.setProperty('--dy', (p[1] - c[1]) * u2c);
+          card.el.style.setProperty('--fx', card.step * cardW * 0.62);
+          card.el.style.setProperty('--fy',
+            -Math.abs(card.step) * cardW * 0.62 * 0.12);
+        });
+      });
+    };
   }
 
   // ── the lightbox ───────────────────────────────────────────────────────────
@@ -515,7 +679,9 @@
     view.hidden = true;
     world.hidden = false;
     stage.textContent = '';
+    sheetLayout = null;
     if (focusKey && links[focusKey]) links[focusKey].focus();
+    fitIndex();
   }
 
   function showRegion(key) {
@@ -531,8 +697,70 @@
     // region is a map of somewhere you have not photographed yet, which is a
     // more useful thing to look at than a blank panel.
     stage.appendChild(buildSheet(key, photos));
+    if (sheetLayout) sheetLayout();
     title.focus();
   }
+
+  // ── fitting the index to whatever height is left ─────────────────────────
+  //
+  // The map is sized from --chrome-world, a fixed estimate of everything that
+  // is not the map. On a wide window the height runs out first and map and
+  // index together fill the screen exactly. Narrow it and the map becomes
+  // width-limited instead — shorter than the height set aside for it — and
+  // the index is left sitting above a widening band of empty ground.
+  //
+  // CSS cannot see that, because the space left over depends on how tall the
+  // map ended up, which depends on its width. So measure it. The index is the
+  // last thing on the page, so the room available is everything between its
+  // top and the bottom of the window.
+  //
+  // Height grows monotonically with type size — bigger words make taller rows
+  // and, past each threshold, more of them — so a binary search converges on
+  // the largest size that still fits. Twelve halvings of a 44px range lands
+  // inside a hundredth of a pixel.
+  //
+  // Never smaller than the size the stylesheet asked for. On a wide window
+  // there is nothing spare, and shrinking the type to "fill" a page that is
+  // already full would be backwards.
+  function fitIndex() {
+    if (world.hidden || !index.children.length) return;
+
+    index.style.fontSize = '';
+    var base = parseFloat(getComputedStyle(index).fontSize);
+    if (!base) return;
+
+    // Measured at the base size, but it does not move with it: the index sits
+    // under the map, and the map's height does not depend on the index.
+    var pad = parseFloat(getComputedStyle(main).paddingBottom) || 0;
+    var room = document.documentElement.clientHeight
+             - index.getBoundingClientRect().top - pad;
+
+    var lo = base, hi = 44, best = base, mid;
+    for (var i = 0; i < 12; i++) {
+      mid = (lo + hi) / 2;
+      index.style.fontSize = mid + 'px';
+      if (index.getBoundingClientRect().height <= room) { best = mid; lo = mid; }
+      else { hi = mid; }
+    }
+    index.style.fontSize = best.toFixed(2) + 'px';
+  }
+
+  // Coalesced: a drag across the screen fires scores of resize events, and
+  // each fit is a dozen forced reflows.
+  var pending = 0;
+  function fitSoon() {
+    if (pending) return;
+    pending = requestAnimationFrame(function () {
+      pending = 0;
+      fitIndex();
+      if (sheetLayout) sheetLayout();
+    });
+  }
+  window.addEventListener('resize', fitSoon);
+
+  // The first measurement happens in whatever font the browser had to hand.
+  // DM Sans arriving afterwards changes every width on the row.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitIndex);
 
   function route() {
     // A stray '%' in the hash — from a mangled paste, or a link a chat client

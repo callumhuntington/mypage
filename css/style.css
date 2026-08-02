@@ -97,6 +97,10 @@ a:hover {
   border-radius: var(--radius);
   padding: 1.6rem 1.3rem 1.8rem;
   margin-bottom: 1.6rem;
+  /* The same white the map frames reveal inside their shell. A window on this
+     site shows something behind the wall; the warm ground is the wall, and a
+     window onto more of it was never really a window. */
+  background-color: var(--reveal-color);
 }
 
 * {
@@ -230,7 +234,7 @@ body.landing .content {
     flex: 1 1 0;
     min-height: 0;
     width: 100%;
-    max-width: 66rem;      /* stop the whole block spanning a wide window */
+    max-width: 72rem;      /* stop the whole block spanning a wide window */
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -354,7 +358,14 @@ body.landing .content {
 
 .projectpara {
     font-weight: var(--weight-body);
-    font-size: var(--size-lede);
+    /* The shared lede curve, but stopped at 1.15rem rather than 1.45rem. The
+       paragraph is four times the length it was written for, and this column
+       does not widen past 72rem — so above about 1150px the type was growing
+       into a fixed box, adding lines faster than the layout could find height
+       for them, until the text ran under the socials. Held here, the wide
+       window gets the same reading size as a 1000px one and simply more of
+       the picture. */
+    font-size: clamp(0.66rem, 0.46rem + 0.95vw, 1.15rem);
     width: 100%;
     max-width: 34rem;    /* ~60 characters. It was running to about 90, which
                             is what made the wide layout read as a slab and the
@@ -570,7 +581,9 @@ img {
 @media (min-width: 900px) {
     .landing-body {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
+        /* 43% not 46%: three points off the photograph is about 35px onto the
+           paragraph, which is a line saved at most widths. */
+        grid-template-columns: minmax(0, 1fr) minmax(0, 43%);
         /* Empty tracks top and bottom: the masthead and paragraph sit together
            as one vertically centred pair, while the photograph still spans the
            full height of the column. */
@@ -614,6 +627,10 @@ img {
     .landing-photo {
         max-width: 100%;
     }
+
+    /* Room to use the wider column. Still short of 90 characters, which was
+       the measure that made this read as a slab. */
+    .projectpara { max-width: 40rem; }
 
     /* the breathing room belongs here instead */
     body.landing footer {
